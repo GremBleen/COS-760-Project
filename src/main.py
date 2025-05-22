@@ -16,7 +16,7 @@ load_dotenv()
 login(token = os.getenv("HUGGINGFACE_TOKEN"))
 
 # TODO - chage this so that the run options read from the presets.json instead
-opt_lang = "afr"
+opt_lang = "xho"
 opt_model = "lelapa"  # 'whisper-medium', 'whisper-large', 'afriwhisper', 'lelapa', 'wav2vec', 'deepspeech', 'all'
 
 # This is getting the dataset specified by `opt_lang` which takes a while

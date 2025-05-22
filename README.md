@@ -21,28 +21,9 @@ Now that you have the basic project structure, you can start looking at the pyth
 
 >**Note:**  The project made use of conda for the management of the environment and dependencies.
 
-An `environemnt.yml` has been included from which a conda environment with all necessary dependencies can be created.
-
-To create the environment, ensure that conda is installed and run the following command:
-```shell
-conda env create -f environment.yaml
-```
-
-Now you should be able to activate the environment:
-```shell
-conda activate cos-760-env
-```
+Initially we had an `environment.yml` file, however, there were issues when creating a new environment on a different OS, so instead we recommend that you go through the python files and install the dependencies manually. When running the project, if any errors occur, look to see if further dependencies are necessary.
 
 Now to run the project, you can use the following command (assuming you are in the root directory of the project):
 ```shell
 python3 src/main.py
-```
-
->**Note:** If more dependencies are required, it is necessary to regenerate the `environment.yml` file. This can be done as follows:
-```shell
-# Linux or MacOS
-conda env export | sed '/^prefix:/d' > environment.yml
-
-# Windows
-conda env export | Select-String -NotMatch "^prefix:" > environment.yml
 ```

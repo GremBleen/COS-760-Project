@@ -3,7 +3,7 @@ from transformers import AutoProcessor, AutoModelForCTC
 
 
 def runLelapaLoop(processor, model, dataset):
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu")
     model = model.to(device)
     model.eval()
 
