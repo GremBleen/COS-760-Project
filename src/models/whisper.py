@@ -2,7 +2,13 @@ from transformers import WhisperProcessor, WhisperForConditionalGeneration
 import torch
 
 def runLoop(processor, model, dataset):
-    device = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu")
+
+    try:
+        has_mps = torch.backends.mps.is_available()
+    except (AttributeError, RuntimeError):
+        has_mps = False
+    
+    device = torch.device("cuda" if torch.cuda.is_available() else "mps" if has_mps else "cpu")
     model = model.to(device)
 
     sample = dataset[0]["audio"]
