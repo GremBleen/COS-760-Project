@@ -3,9 +3,12 @@ import torch
 
 def runLoop(processor, model, dataset):
 
-    try:
-        has_mps = torch.backends.mps.is_available()
-    except (AttributeError, RuntimeError):
+    if hasattr(torch.backends, "mps"):
+        try:
+            has_mps = torch.backends.mps.is_available()
+        except (AttributeError, RuntimeError):
+            has_mps = False
+    else:
         has_mps = False
     
     device = torch.device("cuda" if torch.cuda.is_available() else "mps" if has_mps else "cpu")
