@@ -1,51 +1,19 @@
+from dotenv import load_dotenv
+import os
 from huggingface_hub import login
-from datasets import load_dataset, concatenate_datasets
-import torch
+
 
 from models.whisper import runWhisperMedium, runWhisperLargeV3, runAfriWhisper
 from models.lelapa import runLelapa
 from models.wav2vec import runWav2Vec
 from models.deep_speech import runDeepSpeech
 
+from common import getDataset
 
-# TODO - get the token from the .env file - look at using python-dotenv
+
 # Log in to HuggingFace
-login()
-
-
-def getDataset(opt_lang):
-
-    lang_list = ("afr", "xho", "zul", "ven", "tso", "tsn", "ssw", "nso", "sot")
-
-    if opt_lang in lang_list:
-        datasets = load_dataset(f"danielshaps/nchlt_speech_{opt_lang}")
-        return concatenate_datasets([split for split in datasets.values()])
-    else:
-        raise ValueError(f"Invalid `opt_lang`: {opt_lang}")
-
-"""
-This is the loop called by each of the models in order to do evaluation
-"""
-def runLoop(processor, model, dataset):
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu") # TODO - update this to be usable with Apple Silicon  
-    model = model.to(device)
-
-    sample = dataset[0]["audio"]
-
-    input_features = processor(
-        sample["array"], sampling_rate=sample["sampling_rate"], return_tensors="pt"
-    ).input_features.to(device)
-
-    # Since not training, it is not necessary to include gradients
-    with torch.no_grad():
-        predicted_ids = model.generate(input_features)
-
-    transcription = processor.batch_decode(predicted_ids, skip_special_tokens=True)
-    print(sample["sampling_rate"])
-    print(dataset[0]["text"])
-    print(transcription)
-
-    return 0
+load_dotenv()
+login(token = os.getenv("HUGGINGFACE_TOKEN"))
 
 # TODO - chage this so that the run options read from the presets.json instead
 opt_lang = "afr"

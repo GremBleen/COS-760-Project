@@ -1,12 +1,28 @@
 from transformers import WhisperProcessor, WhisperForConditionalGeneration
-from main import runLoop
+import torch
+
+def runLoop(processor, model, dataset):
+    device = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu") # TODO - update this to be usable with Apple Silicon  
+    model = model.to(device)
+
+    sample = dataset[0]["audio"]
+
+    input_features = processor(
+        sample["array"], sampling_rate=sample["sampling_rate"], return_tensors="pt"
+    ).input_features.to(device)
+
+    # Since not training, it is not necessary to include gradients
+    with torch.no_grad():
+        predicted_ids = model.generate(input_features)
+
+    transcription = processor.batch_decode(predicted_ids, skip_special_tokens=True)
+    print(sample["sampling_rate"])
+    print(dataset[0]["text"])
+    print(transcription)
+
+    return 0
 
 # TODO - may need to resample data as whisper may need it in a different format
-
-"""
-This was included to determine if AfriWhisper is better
-"""
-
 
 def runWhisperMedium(test):
     run_model = "openai/whisper-medium"
@@ -21,11 +37,6 @@ def runWhisperMedium(test):
     print(f"End of run for {run_model}")
 
 
-"""
-This makes use of whisper medium
-"""
-
-
 def runAfriWhisper(test):
     run_model = "intronhealth/afrispeech-whisper-medium-all"
     print(f"Running on {run_model}")
@@ -37,14 +48,6 @@ def runAfriWhisper(test):
     runLoop(processor=processor, model=model, dataset=test)
 
     print(f"End of run for {run_model}")
-
-
-"""
-This is the current flagship, this is included to determine if
-the context provided by AfriWhisper results in an improvement
-over the flagship
-"""
-
 
 def runWhisperLargeV3(test):
     run_model = "openai/whisper-large-v3"
