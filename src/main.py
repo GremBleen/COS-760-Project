@@ -1,13 +1,16 @@
-# Log in to HuggingFace
 from huggingface_hub import login
-
-login()
-
 from datasets import load_dataset, concatenate_datasets
+import torch
 
-"""
-As we are not training any models, we are using the entire dataset.
-"""
+from models.whisper import runWhisperMedium, runWhisperLargeV3, runAfriWhisper
+from models.lelapa import runLelapa
+from models.wav2vec import runWav2Vec
+from models.deep_speech import runDeepSpeech
+
+
+# TODO - get the token from the .env file - look at using python-dotenv
+# Log in to HuggingFace
+login()
 
 
 def getDataset(opt_lang):
@@ -20,16 +23,11 @@ def getDataset(opt_lang):
     else:
         raise ValueError(f"Invalid `opt_lang`: {opt_lang}")
 
-
-import torch
-
 """
 This is the loop called by each of the models in order to do evaluation
 """
-
-
 def runLoop(processor, model, dataset):
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu") # TODO - update this to be usable with Apple Silicon  
     model = model.to(device)
 
     sample = dataset[0]["audio"]
@@ -49,23 +47,12 @@ def runLoop(processor, model, dataset):
 
     return 0
 
-"""
-This block has been separated so that the dataset can accessed without redownload across multiple runs
-"""
-
-# Run options
+# TODO - chage this so that the run options read from the presets.json instead
 opt_lang = "afr"
 opt_model = "lelapa"  # 'whisper-medium', 'whisper-large', 'afriwhisper', 'lelapa', 'wav2vec', 'deepspeech', 'all'
 
 # This is getting the dataset specified by `opt_lang` which takes a while
 test = getDataset(opt_lang)
-
-# Do not alter anything below this comment
-
-from models.whisper import runWhisperMedium, runWhisperLargeV3, runAfriWhisper
-from models.lelapa import runLelapa
-from models.wav2vec import runWav2Vec
-from models.deep_speech import runDeepSpeech
 
 if opt_model == "whisper-medium":
     runWhisperMedium(test)
