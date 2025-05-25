@@ -3,7 +3,6 @@ from jiwer import cer, wer
 import re
 import string
 
-
 def getDataset(opt_lang):
     lang_list = ("afr", "xho", "zul", "ven", "tso", "tsn", "ssw", "nso", "sot")
 

@@ -1,5 +1,6 @@
 {
     "dataset_language": "afr",
     "model": "whisper-large",
-    "refinement_method": "none"
+    "refinement_method": "none",
+    "debug":true
 }
