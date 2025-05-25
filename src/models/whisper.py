@@ -40,7 +40,7 @@ def runLoop(processor, model, dataset):
         evaluateTranscription(
             reference_text=curr_reference,
             predicted_text=curr_transcription,
-            print=True
+            output=True
         )
 
         total_reference += curr_reference + "\n"
