@@ -1,5 +1,5 @@
 {
-    "dataset-language": "afr",
-    "model": "lelapa",
+    "dataset_language": "afr",
+    "model": "whisper-large",
     "refinement_method": "none"
 }

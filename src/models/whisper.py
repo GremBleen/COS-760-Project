@@ -1,8 +1,10 @@
 from transformers import WhisperProcessor, WhisperForConditionalGeneration
+from common import evaluateTranscription
 import torch
 
 def runLoop(processor, model, dataset):
-
+    total_reference = ""
+    total_hypothesis = ""
     if hasattr(torch.backends, "mps"):
         try:
             has_mps = torch.backends.mps.is_available()
@@ -10,28 +12,46 @@ def runLoop(processor, model, dataset):
             has_mps = False
     else:
         has_mps = False
-    
-    device = torch.device("cuda" if torch.cuda.is_available() else "mps" if has_mps else "cpu")
+
+    device = torch.device(
+        "cuda" if torch.cuda.is_available() else "mps" if has_mps else "cpu"
+    )
     model = model.to(device)
+    model.forced_decoder_ids = None # TODO - change this to see if it improves results
 
-    sample = dataset[0]["audio"]
+    for instance in dataset:
+        sample = instance["audio"]
 
-    input_features = processor(
-        sample["array"], sampling_rate=sample["sampling_rate"], return_tensors="pt"
-    ).input_features.to(device)
+        input_features = processor(
+            sample["array"], sampling_rate=sample["sampling_rate"], return_tensors="pt"
+        ).input_features.to(device)
 
-    # Since not training, it is not necessary to include gradients
-    with torch.no_grad():
-        predicted_ids = model.generate(input_features)
+        # Since not training, it is not necessary to include gradients
+        with torch.no_grad():
+            predicted_ids = model.generate(input_features)
 
-    transcription = processor.batch_decode(predicted_ids, skip_special_tokens=True)
-    print(sample["sampling_rate"])
-    print(dataset[0]["text"])
-    print(transcription)
+        transcription = processor.batch_decode(predicted_ids, skip_special_tokens=True)
 
-    return 0
+        curr_reference = instance["text"]
+        curr_transcription = ""
+        for word in transcription:
+            curr_transcription += word + " "
+
+        evaluateTranscription(
+            reference_text=curr_reference,
+            predicted_text=curr_transcription,
+            print=True
+        )
+
+        total_reference += curr_reference + "\n"
+        total_hypothesis += curr_transcription + "\n"
+
+    return evaluateTranscription(
+        reference_text=total_reference, predicted_text=total_hypothesis
+    ) # We are returning the error over the whole dataset so that prompts to not have a disproportionate effect on the results
 
 # TODO - may need to resample data as whisper may need it in a different format
+
 
 def runWhisperMedium(test):
     run_model = "openai/whisper-medium"
@@ -57,6 +77,7 @@ def runAfriWhisper(test):
     runLoop(processor=processor, model=model, dataset=test)
 
     print(f"End of run for {run_model}")
+
 
 def runWhisperLargeV3(test):
     run_model = "openai/whisper-large-v3"

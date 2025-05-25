@@ -10,14 +10,21 @@ from models.deep_speech import runDeepSpeech
 
 from common import getDataset
 
+import json
+import pathlib
+
 
 # Log in to HuggingFace
 load_dotenv()
-login(token = os.getenv("HUGGINGFACE_TOKEN"))
+login(token=os.getenv("HUGGINGFACE_TOKEN"))
 
-# TODO - chage this so that the run options read from the presets.json instead
-opt_lang = "xho"
-opt_model = "lelapa"  # 'whisper-medium', 'whisper-large', 'afriwhisper', 'lelapa', 'wav2vec', 'deepspeech', 'all'
+# Get the path to the presets.json file in the parent directory
+presets_path = pathlib.Path(__file__).parent.parent / "presets.json"
+with open(presets_path, "r") as f:
+    presets = json.load(f)
+
+opt_lang = presets["dataset_language"]
+opt_model = presets["model"]  # 'whisper-medium', 'whisper-large', 'afriwhisper', 'lelapa', 'wav2vec', 'deepspeech', 'all'
 
 # This is getting the dataset specified by `opt_lang` which takes a while
 test = getDataset(opt_lang)

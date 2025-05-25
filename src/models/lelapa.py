@@ -7,30 +7,32 @@ def runLelapaLoop(processor, model, dataset):
     model = model.to(device)
     model.eval()
 
-    sample = dataset[0]["audio"]
-    inputs = processor(
-        sample["array"],
-        sampling_rate=sample["sampling_rate"],
-        return_tensors="pt",
-        padding=True,
-    )
+    for instance in dataset:
+        sample = instance["audio"]
+        inputs = processor(
+            sample["array"],
+            sampling_rate=sample["sampling_rate"],
+            return_tensors="pt",
+            padding=True,
+        )
 
-    input_values = inputs.input_values.to(device)
+        input_values = inputs.input_values.to(device)
 
-    # Inference (no training)
-    with torch.no_grad():
-        logits = model(input_values).logits
-        predicted_ids = torch.argmax(logits, dim=-1)
+        # Inference (no training)
+        with torch.no_grad():
+            logits = model(input_values).logits
+            predicted_ids = torch.argmax(logits, dim=-1)
 
-    # Decode the prediction to text
-    transcription = processor.batch_decode(predicted_ids, skip_special_tokens=True)
+        # Decode the prediction to text
+        transcription = processor.batch_decode(predicted_ids, skip_special_tokens=True)
 
-    # Logging
-    print(f"Sample rate: {sample['sampling_rate']}")
-    print(f"Reference: {dataset[0]['text']}")
-    print(f"Prediction: {transcription[0]}")
+        # Logging
+        print(f"Sample rate: {sample['sampling_rate']}")
+        print(f"Reference: {instance['text']}")
+        print(f"Prediction: {transcription[0]}")
 
-    return transcription[0]
+    # TODO - change this to return metrics
+    return 0
 
 
 def runLelapa(test):
