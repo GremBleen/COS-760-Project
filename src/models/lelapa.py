@@ -1,9 +1,51 @@
 import torch
 from transformers import AutoProcessor, AutoModelForCTC
+import torchaudio
+from math import ceil
+
+def getLanguageCode(language):
+    language_codes = {
+        "afr": "af",
+        "xho": "xh",
+        "zul": "zu",
+        "ven": "ve",
+        "tso": "ts",
+        "tsn": "tn",
+        "ssw": "ss",
+        "nso": "nso",
+        "sot": "st"
+    }
+    return language_codes.get(language, None)
+
+def runLoop(processor, model, dataset, refinement=False, debug=False):
+    if hasattr(torch.backends, "mps"):
+        try:
+            has_mps = torch.backends.mps.is_available()
+        except (AttributeError, RuntimeError):
+            has_mps = False
+    else:
+        has_mps = False
+
+    device = torch.device(
+        "cuda" if torch.cuda.is_available() else "mps" if has_mps else "cpu"
+    )
+    model = model.to(device)
+
+    # Using mini-batching to make it faster
 
 
 def runLelapaLoop(processor, model, dataset):
-    device = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu")
+    if hasattr(torch.backends, "mps"):
+        try:
+            has_mps = torch.backends.mps.is_available()
+        except (AttributeError, RuntimeError):
+            has_mps = False
+    else:
+        has_mps = False
+
+    device = torch.device(
+        "cuda" if torch.cuda.is_available() else "mps" if has_mps else "cpu"
+    )
     model = model.to(device)
     model.eval()
 
@@ -35,13 +77,16 @@ def runLelapaLoop(processor, model, dataset):
     return 0
 
 
-def runLelapa(test):
+def runLelapa(test, language="xho", refinement=False, debug=False):
     run_model = "lelapa/mms-1b-fl102-xho-15"
     print(f"Running on {run_model}")
 
     processor = AutoProcessor.from_pretrained(run_model)
     model = AutoModelForCTC.from_pretrained(run_model)
+    model.config.forced_decoder_ids = (
+        None # Disable forced decoder ids for this model
+    )
 
-    runLelapaLoop(processor=processor, model=model, dataset=test)
+    runLoop(processor=processor, model=model, dataset=test, refinement=refinement, debug=debug)
 
     print(f"End of run for {run_model}")

@@ -1,6 +1,6 @@
 {
-    "dataset_language": "afr",
-    "model": "whisper-large",
+    "dataset_language": "xho",
+    "model": "lelapa",
     "refinement_method": "none",
     "debug":true
 }
