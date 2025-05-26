@@ -46,7 +46,7 @@ elif opt_model == "whisper-large":
 elif opt_model == "afriwhisper":
     runAfriWhisper(test, language = opt_lang, refinement=opt_refinement, debug=opt_debug)
 elif opt_model == "lelapa":
-    runLelapa(test)
+    runLelapa(test, language = opt_lang, refinement=opt_refinement, debug=opt_debug)
 elif opt_model == "wav2vec":
     runWav2Vec(test)
 elif opt_model == "deepspeech":
