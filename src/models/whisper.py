@@ -37,6 +37,7 @@ def runLoop(processor, model, dataset, batch_size = 20, refinement=False, debug=
     # Using mini-batching to make it faster
     num_batches = ceil(len(dataset) / batch_size)
 
+    # Character Error Rate (CER) and Word Error Rate (WER) initialisation
     cer = 0
     wer = 0
 
