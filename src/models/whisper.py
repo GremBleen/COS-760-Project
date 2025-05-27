@@ -7,6 +7,10 @@ import torch
 import torchaudio
 from math import ceil
 
+# Explanation:
+# - model.config.forced_decoder_ids is used to set the language and task for the Whisper model. By setting it to None, it forces the model into a multi-language mode.
+# - Padding is used to ensure that all audio files within a batch are of the same length
+# - The attention mask then identifies which tokens within an audio file needs to be processed - ignoring the padded tokens.
 
 # This is mapping to the available languages in the Whisper model to try improve results
 def getLanguageCode(language):
@@ -16,7 +20,7 @@ def getLanguageCode(language):
     return language_codes.get(language, None)
 
 
-def runLoop(processor, model, dataset, refinement=False, debug=False):
+def runLoop(processor, model, dataset, batch_size = 20, refinement=False, debug=False):
     if hasattr(torch.backends, "mps"):
         try:
             has_mps = torch.backends.mps.is_available()
@@ -30,9 +34,7 @@ def runLoop(processor, model, dataset, refinement=False, debug=False):
     )
     model = model.to(device)
 
-
     # Using mini-batching to make it faster
-    batch_size = 20
     num_batches = ceil(len(dataset) / batch_size)
 
     cer = 0
@@ -40,11 +42,11 @@ def runLoop(processor, model, dataset, refinement=False, debug=False):
 
     for i in range(num_batches):
         start_index = i * batch_size
-        end_index = min((i+1) * batch_size, len(dataset))
+        end_index = min((i + 1) * batch_size, len(dataset))
 
         batch_audio = []
         batch_transcript = []
-        
+
         for j in range(start_index, end_index):
             sample = dataset[j]
             waveform = sample["audio"]["array"]
@@ -54,7 +56,9 @@ def runLoop(processor, model, dataset, refinement=False, debug=False):
                 resampler = torchaudio.transforms.Resample(
                     orig_freq=sample_rate, new_freq=16000
                 )  # ensuring that using 16kHz
-                resampled = resampler(torch.tensor(waveform, dtype=torch.float32)).numpy()
+                resampled = resampler(
+                    torch.tensor(waveform, dtype=torch.float32)
+                ).numpy()
                 batch_audio.append(resampled)
             else:
                 batch_audio.append(waveform)
@@ -65,7 +69,7 @@ def runLoop(processor, model, dataset, refinement=False, debug=False):
             sampling_rate=16000,
             return_tensors="pt",
             padding=True,  # making all audio files the same length
-            return_attention_mask=True
+            return_attention_mask=True,
         )
 
         input_features = inputs.input_features.to(device)
@@ -100,14 +104,14 @@ def runLoop(processor, model, dataset, refinement=False, debug=False):
         )
         cer += temp_cer
         wer += temp_wer
-    
+
     cer /= num_batches
     wer /= num_batches
 
     return cer, wer
 
 
-def runWhisper(model, test, language=None, refinement=False, debug=False):
+def runWhisper(model, test, batch_size = 20, language=None, refinement=False, debug=False):
     if model == "medium":
         run_model = "openai/whisper-medium"
     elif model == "large":
@@ -115,7 +119,7 @@ def runWhisper(model, test, language=None, refinement=False, debug=False):
     else:
         raise ValueError("Invalid model specified. Use 'medium' or 'large'.")
 
-    print(f"Running on {run_model}")
+    print(f"Running {language} on {run_model} with batch size {batch_size}")
 
     processor = WhisperProcessor.from_pretrained(run_model)
     model = WhisperForConditionalGeneration.from_pretrained(run_model)
@@ -127,34 +131,38 @@ def runWhisper(model, test, language=None, refinement=False, debug=False):
             language=language, task="transcribe"
         )
 
-    runLoop(
+    cer, wer = runLoop(
         processor=processor,
         model=model,
         dataset=test,
+        batch_size=batch_size,
         refinement=refinement,
         debug=debug,
     )
 
     print(f"End of run for {run_model}")
+    return cer, wer
 
 
-def runAfriWhisper(test, language=None, refinement=False, debug=False):
+def runAfriWhisper(test, batch_size = 20, language=None, refinement=False, debug=False):
     run_model = "intronhealth/afrispeech-whisper-medium-all"
-    print(f"Running on {run_model}")
+    print(f"Running {language} on {run_model} with batch size {batch_size}")
 
     processor = WhisperProcessor.from_pretrained(run_model)
     model = WhisperForConditionalGeneration.from_pretrained(run_model)
     model.config.forced_decoder_ids = (
         None  # Setting the language is not supported in this model
     )
-    model.config.suppress_tokens = None
+    model.config.suppress_tokens = None  # Suppressing special tokens - for the AfriSpeech model, the token list is empty causing an error when trying to run if not set to None
 
-    runLoop(
+    cer, wer = runLoop(
         processor=processor,
         model=model,
         dataset=test,
+        batch_size=batch_size,
         refinement=refinement,
         debug=debug,
     )
 
     print(f"End of run for {run_model}")
+    return cer, wer

@@ -33,6 +33,7 @@ with open(presets_path, "r") as f:
 
 opt_lang = presets["dataset_language"] # 'afr', 'xho', 'zul', 'ven', 'tso', 'tsn', 'ssw', 'nso', 'sot'
 opt_model = presets["model"]  # 'whisper-medium', 'whisper-large', 'afriwhisper', 'lelapa', 'wav2vec', 'deepspeech', 'all'
+opt_batch_size = presets["batch_size"]
 opt_refinement = presets["refinement_method"]
 opt_debug = presets["debug"]
 
@@ -40,23 +41,23 @@ opt_debug = presets["debug"]
 test = getDataset(opt_lang)
 
 if opt_model == "whisper-medium":
-    runWhisper("medium", test, language = opt_lang, refinement=opt_refinement, debug=opt_debug)
+    runWhisper("medium", test, batch_size = opt_batch_size, language = opt_lang, refinement=opt_refinement, debug=opt_debug)
 elif opt_model == "whisper-large":
-    runWhisper("large", test, language = opt_lang, refinement=opt_refinement, debug=opt_debug)
+    runWhisper("large", test, batch_size = opt_batch_size, language = opt_lang, refinement=opt_refinement, debug=opt_debug)
 elif opt_model == "afriwhisper":
-    runAfriWhisper(test, language = opt_lang, refinement=opt_refinement, debug=opt_debug)
+    runAfriWhisper(test, batch_size = opt_batch_size, language = opt_lang, refinement=opt_refinement, debug=opt_debug)
 elif opt_model == "lelapa":
     runLelapa(test)
 elif opt_model == "wav2vec":
-    runWav2Vec(test)
+    runWav2Vec(test, batch_size = opt_batch_size, language = opt_lang, refinement=opt_refinement, debug=opt_debug)
 elif opt_model == "deepspeech":
     runDeepSpeech(test)
 elif opt_model == "all":
-    runWhisper("medium", test, language = opt_lang, refinement=opt_refinement, debug=opt_debug)
-    runWhisper("large", test, language = opt_lang, refinement=opt_refinement, debug=opt_debug)
-    runAfriWhisper(test, language = opt_lang, refinement=opt_refinement, debug=opt_debug)
+    runWhisper("medium", test, batch_size = opt_batch_size, language = opt_lang, refinement=opt_refinement, debug=opt_debug)
+    runWhisper("large", test, batch_size = opt_batch_size, language = opt_lang, refinement=opt_refinement, debug=opt_debug)
+    runAfriWhisper(test, batch_size = opt_batch_size, language = opt_lang, refinement=opt_refinement, debug=opt_debug)
     runLelapa(test)
-    runWav2Vec(test)
+    runWav2Vec(test, batch_size = opt_batch_size,)
     runDeepSpeech(test)
 else:
     raise ValueError(f"Invalid `opt_model`: {opt_model}")
