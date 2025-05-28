@@ -2,6 +2,8 @@ from datasets import load_dataset, concatenate_datasets
 from jiwer import cer, wer
 import re
 import string
+import torch
+import torchaudio
 
 def getDataset(opt_lang):
     lang_list = ("afr", "xho", "zul", "ven", "tso", "tsn", "ssw", "nso", "sot")
@@ -40,3 +42,15 @@ def evaluateTranscription(reference_text, predicted_text, output = False):
         print(f"WER: {word_err_rate:.4f}")
 
     return char_err_rate, word_err_rate
+
+def resample(waveform, current_sample_rate, required_sample_rate):
+    if current_sample_rate != required_sample_rate:
+        resampler = torchaudio.transforms.Resample(
+            orig_freq=current_sample_rate, new_freq=required_sample_rate
+        )  # ensuring that using 16kHz
+        resampled = resampler(
+            torch.tensor(waveform, dtype=torch.float32)
+        ).numpy()
+        return resampled
+    else:
+        return waveform
