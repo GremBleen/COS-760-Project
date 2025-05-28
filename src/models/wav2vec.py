@@ -1,10 +1,8 @@
 from transformers import Wav2Vec2Processor, Wav2Vec2ForCTC
 from math import ceil
 import torch
-import torchaudio
 
-from common import evaluateTranscription
-
+from common import evaluateTranscription, resample
 
 def runWav2Vec(dataset, language=None, batch_size=20, refinement=False, debug=False):
     run_model = "facebook/wav2vec2-large-960h-lv60-self" # TODO - change this to be language specific
@@ -44,16 +42,8 @@ def runWav2Vec(dataset, language=None, batch_size=20, refinement=False, debug=Fa
             waveform = sample["audio"]["array"]
             sample_rate = sample["audio"]["sampling_rate"]
             transcript = sample["text"]
-            if sample_rate != 16000:
-                resampler = torchaudio.transforms.Resample(
-                    orig_freq=sample_rate, new_freq=16000
-                )  # ensuring that using 16kHz
-                resampled = resampler(
-                    torch.tensor(waveform, dtype=torch.float32)
-                ).numpy()
-                batch_audio.append(resampled)
-            else:
-                batch_audio.append(waveform)
+            resampled = resample(waveform, sample_rate, 16000)
+            batch_audio.append(resampled)
             batch_transcript.append(transcript)
 
         inputs = processor(
