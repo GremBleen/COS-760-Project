@@ -2,7 +2,7 @@ import torch
 from transformers import AutoProcessor, AutoModelForCTC
 import torchaudio
 from math import ceil
-from common import evaluateTranscription
+from common import evaluateTranscription, saveResults
 
 
 def getLanguageCode(language):
@@ -20,7 +20,7 @@ def getLanguageCode(language):
     return language_codes.get(language, None)
 
 
-def runLoop(processor, model, dataset, refinement=False, debug=False):
+def runLoop(processor, model, dataset, language, refinement=False, debug=False):
     if hasattr(torch.backends, "mps"):
         try:
             has_mps = torch.backends.mps.is_available()
@@ -42,6 +42,8 @@ def runLoop(processor, model, dataset, refinement=False, debug=False):
     # Character Error Rate (CER) and Word Error Rate (WER) initialisation
     cer = 0
     wer = 0
+
+    results_dict = {}
 
     for i in range(len(dataset)):
         start_index = i * batch_size
@@ -92,13 +94,17 @@ def runLoop(processor, model, dataset, refinement=False, debug=False):
             output=debug
         )
 
+        results_dict[i] = (temp_cer, temp_wer)
+
         cer += temp_cer
         wer += temp_wer
 
     cer /= num_batches
     wer /= num_batches
 
-    # TODO - change this to return metrics
+    # saveResults_V1(cer, wer, language=language, model="lelapa", refinement=refinement)
+    saveResults(results_dict, language=language, model="lelapa", refinement=refinement)
+
     return cer, wer
 
 
@@ -115,6 +121,7 @@ def runLelapa(test, language="xho", refinement=False, debug=False):
         model=model,
         dataset=test,
         refinement=refinement,
+        language=language,
         debug=debug,
     )
 

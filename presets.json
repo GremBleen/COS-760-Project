@@ -1,7 +1,0 @@
-{
-    "dataset_language": "afr",
-    "model": "wav2vec",
-    "batch_size": 20,
-    "refinement_method": "none",
-    "debug":true
-}
