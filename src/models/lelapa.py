@@ -2,22 +2,7 @@ import torch
 from transformers import AutoProcessor, AutoModelForCTC
 import torchaudio
 from math import ceil
-from common import evaluateTranscription, saveResults
-
-
-def getLanguageCode(language):
-    language_codes = {
-        "afr": "af",
-        "xho": "xh",
-        "zul": "zu",
-        "ven": "ve",
-        "tso": "ts",
-        "tsn": "tn",
-        "ssw": "ss",
-        "nso": "nso",
-        "sot": "st",
-    }
-    return language_codes.get(language, None)
+from common import evaluateTranscription, resample, saveResults
 
 
 def runLoop(processor, model, dataset, language, refinement=False, debug=False):
@@ -33,7 +18,6 @@ def runLoop(processor, model, dataset, language, refinement=False, debug=False):
         "cuda" if torch.cuda.is_available() else "mps" if has_mps else "cpu"
     )
     model = model.to(device)
-    model.eval()
 
     # Using mini-batching to make it faster
     batch_size = 20
@@ -57,8 +41,8 @@ def runLoop(processor, model, dataset, language, refinement=False, debug=False):
             waveform = sample["audio"]["array"]
             sample_rate = sample["audio"]["sampling_rate"]
             transcript = sample["text"]
-            # ! May need to resample the waveform to 16kHz
-            batch_audio.append(waveform)
+            resampled = resample(waveform, sample_rate, 16000)
+            batch_audio.append(resampled)
             batch_transcript.append(transcript)
 
         inputs = processor(
