@@ -40,3 +40,31 @@ def evaluateTranscription(reference_text, predicted_text, output = False):
         print(f"WER: {word_err_rate:.4f}")
 
     return char_err_rate, word_err_rate
+
+# def saveResults_V1(cer, wer, language, model, refinement, filename=None):
+#     if filename is None:
+#         from datetime import datetime
+#         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+#         filename = f"{language}_{model}_{refinement}_{timestamp}.txt"
+#     # Save the results to a file that displays the model, language, and refinement method as well as the CER and WER over the dataset
+#     with open(filename, "a") as f:
+#         f.write(f"Model: {model}, Language: {language}, Refinement: {refinement}\n")
+#         f.write(f"CER: {cer:.4f}, WER: {wer:.4f}\n")
+#         f.write("-" * 40 + "\n")
+
+def saveResults(results_dict, language, model, refinement, filename=None):
+    import csv
+
+    if filename is None:
+        from datetime import datetime
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"{language}_{model}_{refinement}_{timestamp}.csv"
+
+    # Save the results to a CSV file that displays the model, language, and refinement method as well as the CER and WER for each batch
+    with open(filename, mode="w", newline="") as f:
+        writer = csv.writer(f)
+        # Write the header
+        writer.writerow(["Batch", "CER", "WER"])
+        # Write the results
+        for batch, (cer, wer) in results_dict.items():
+            writer.writerow([batch, f"{cer:.4f}", f"{wer:.4f}"])
