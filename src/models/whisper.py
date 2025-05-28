@@ -2,9 +2,8 @@ from transformers import (
     WhisperProcessor,
     WhisperForConditionalGeneration,
 )
-from common import evaluateTranscription
+from common import evaluateTranscription, resample
 import torch
-import torchaudio
 from math import ceil
 
 # Explanation:
@@ -53,16 +52,8 @@ def runLoop(processor, model, dataset, batch_size = 20, refinement=False, debug=
             waveform = sample["audio"]["array"]
             sample_rate = sample["audio"]["sampling_rate"]
             transcript = sample["text"]
-            if sample_rate != 16000:
-                resampler = torchaudio.transforms.Resample(
-                    orig_freq=sample_rate, new_freq=16000
-                )  # ensuring that using 16kHz
-                resampled = resampler(
-                    torch.tensor(waveform, dtype=torch.float32)
-                ).numpy()
-                batch_audio.append(resampled)
-            else:
-                batch_audio.append(waveform)
+            resampled = resample(waveform, sample_rate, 16000)
+            batch_audio.append(resampled)
             batch_transcript.append(transcript)
 
         inputs = processor(

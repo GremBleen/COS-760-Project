@@ -27,3 +27,21 @@ Now to run the project, you can use the following command (assuming you are in t
 ```shell
 python3 src/main.py
 ```
+
+### Git Workflow:
+We are making use of the [Git Flow](https://danielkummer.github.io/git-flow-cheatsheet/) workflow.
+
+Assuming git flow has been installed, you can initialize it as follows:
+```shell
+git flow init
+```
+
+To start a new feature, you can use the following command:
+```shell
+git flow feature start <feature-name>
+```
+
+To finish a feature, you can use the following command:
+```shell
+git flow feature finish <feature-name>
+```
