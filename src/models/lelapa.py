@@ -5,7 +5,7 @@ from math import ceil
 from common import evaluateTranscription, resample, saveResults
 
 
-def runLoop(processor, model, dataset, language, refinement=False, debug=False):
+def runLoop(processor, model, dataset, language, batch_size, refinement=False, debug=False):
     if hasattr(torch.backends, "mps"):
         try:
             has_mps = torch.backends.mps.is_available()
@@ -20,7 +20,6 @@ def runLoop(processor, model, dataset, language, refinement=False, debug=False):
     model = model.to(device)
 
     # Using mini-batching to make it faster
-    batch_size = 20
     num_batches = ceil(len(dataset) / batch_size)
 
     # Character Error Rate (CER) and Word Error Rate (WER) initialisation
@@ -60,7 +59,7 @@ def runLoop(processor, model, dataset, language, refinement=False, debug=False):
         with torch.no_grad():
             logits = model(input_values, attention_mask=attention_mask).logits
             predicted_ids = torch.argmax(logits, dim=-1)
-        
+
         # Decode the prediction to text
         transcription = processor.batch_decode(predicted_ids, skip_special_tokens=True)
 
@@ -73,9 +72,7 @@ def runLoop(processor, model, dataset, language, refinement=False, debug=False):
 
         # Evaluate the transcription
         temp_cer, temp_wer = evaluateTranscription(
-            reference_text=reference_text,
-            predicted_text=predicted_text,
-            output=debug
+            reference_text=reference_text, predicted_text=predicted_text, output=debug
         )
 
         results_dict[i] = (temp_cer, temp_wer)
@@ -92,7 +89,7 @@ def runLoop(processor, model, dataset, language, refinement=False, debug=False):
     return cer, wer
 
 
-def runLelapa(test, language="xho", refinement=False, debug=False):
+def runLelapa(test, batch_size=20, language="xho", refinement=False, debug=False):
     run_model = "lelapa/mms-1b-fl102-xho-15"
     print(f"Running on {run_model}")
 
@@ -104,8 +101,9 @@ def runLelapa(test, language="xho", refinement=False, debug=False):
         processor=processor,
         model=model,
         dataset=test,
-        refinement=refinement,
         language=language,
+        batch_size=batch_size,
+        refinement=refinement,
         debug=debug,
     )
 

@@ -7,20 +7,14 @@ from common import evaluateTranscription, resample, saveResults
 
 def getLanguageCode(language):
     language_codes = {
-        "afr": "af",
-        "xho": "xh",
-        "zul": "zu",
-        "ven": "ve",
-        "tso": "ts",
-        "tsn": "tn",
-        "ssw": "ss",
-        "nso": "nso",
-        "sot": "st",
+        "afr": "afr",
+        "xho": "xho",
+        "zul": "zul",
     }
     return language_codes.get(language, None)
 
 
-def runLoop(processor, model, dataset, language, refinement=False, debug=False):
+def runLoop(processor, model, dataset, language, batch_size, refinement=False, debug=False):
     if hasattr(torch.backends, "mps"):
         try:
             has_mps = torch.backends.mps.is_available()
@@ -35,7 +29,6 @@ def runLoop(processor, model, dataset, language, refinement=False, debug=False):
     model = model.to(device)
 
     # Using mini-batching to make it faster
-    batch_size = 20
     num_batches = ceil(len(dataset) / batch_size)
 
     # Character Error Rate (CER) and Word Error Rate (WER) initialisation
@@ -59,6 +52,10 @@ def runLoop(processor, model, dataset, language, refinement=False, debug=False):
             resampled = resample(waveform, sample_rate, 16000)
             batch_audio.append(resampled)
             batch_transcript.append(transcript)
+
+        language_code = getLanguageCode(language)
+        if language_code is None:
+            raise ValueError(f"Unsupported language: {language}. Not supported by the facebook MMS model.")
 
         processor.tokenizer.set_target_lang(getLanguageCode(language))
         model.load_adapter(getLanguageCode(language))
@@ -108,19 +105,21 @@ def runLoop(processor, model, dataset, language, refinement=False, debug=False):
     return cer, wer
 
 
-def runFacebookMMS(dataset, language, refinement=False, debug=False):
+def runFacebookMMS(dataset, language, batch_size=20, refinement=False, debug=False):
     run_model = "facebook/mms-1b-fl102"
     print(f"Running on {run_model}")
 
     processor = AutoProcessor.from_pretrained(run_model)
     model = Wav2Vec2ForCTC.from_pretrained(run_model)
 
+    # print(processor.tokenizer.vocab.keys())
     runLoop(
         processor=processor,
         model=model,
         dataset=dataset,
         refinement=refinement,
         language=language,
+        batch_size=batch_size,
         debug=debug,
     )
 
