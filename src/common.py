@@ -37,9 +37,12 @@ def evaluateTranscription(reference_text, predicted_text, output = False):
 
     if output:
         print(f"Reference: {normalized_reference}")
+        print()
         print(f"Prediction: {normalized_predicted}")
+        print()
         print(f"CER: {char_err_rate:.4f}")
         print(f"WER: {word_err_rate:.4f}")
+        print()
 
     return char_err_rate, word_err_rate
 

@@ -14,7 +14,9 @@ def getLanguageCode(language):
     return language_codes.get(language, None)
 
 
-def runLoop(processor, model, dataset, language, batch_size, refinement=False, debug=False):
+def runLoop(
+    processor, model, dataset, language, batch_size, refinement=False, debug=False
+):
     if hasattr(torch.backends, "mps"):
         try:
             has_mps = torch.backends.mps.is_available()
@@ -55,7 +57,9 @@ def runLoop(processor, model, dataset, language, batch_size, refinement=False, d
 
         language_code = getLanguageCode(language)
         if language_code is None:
-            raise ValueError(f"Unsupported language: {language}. Not supported by the facebook MMS model.")
+            raise ValueError(
+                f"Unsupported language: {language}. Not supported by the facebook MMS model."
+            )
 
         processor.tokenizer.set_target_lang(getLanguageCode(language))
         model.load_adapter(getLanguageCode(language))

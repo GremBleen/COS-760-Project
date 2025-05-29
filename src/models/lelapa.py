@@ -1,7 +1,6 @@
+from math import ceil
 import torch
 from transformers import AutoProcessor, AutoModelForCTC
-import torchaudio
-from math import ceil
 from common import evaluateTranscription, resample, saveResults
 
 

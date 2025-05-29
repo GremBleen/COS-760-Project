@@ -140,21 +140,24 @@ def runAfriWhisper(test, batch_size = 20, language=None, refinement=False, debug
     run_model = "intronhealth/afrispeech-whisper-medium-all"
     print(f"Running {language} on {run_model} with batch size {batch_size}")
 
-    processor = WhisperProcessor.from_pretrained(run_model)
-    model = WhisperForConditionalGeneration.from_pretrained(run_model)
-    model.config.forced_decoder_ids = (
-        None  # Setting the language is not supported in this model
-    )
-    model.config.suppress_tokens = None  # Suppressing special tokens - for the AfriSpeech model, the token list is empty causing an error when trying to run if not set to None
+    if language == "xho":
+        processor = WhisperProcessor.from_pretrained(run_model)
+        model = WhisperForConditionalGeneration.from_pretrained(run_model)
+        model.config.forced_decoder_ids = (
+            None  # Setting the language is not supported in this model
+        )
+        model.config.suppress_tokens = None  # Suppressing special tokens - for the AfriSpeech model, the token list is empty causing an error when trying to run if not set to None
 
-    cer, wer = runLoop(
-        processor=processor,
-        model=model,
-        dataset=test,
-        batch_size=batch_size,
-        refinement=refinement,
-        debug=debug,
-    )
+        cer, wer = runLoop(
+            processor=processor,
+            model=model,
+            dataset=test,
+            batch_size=batch_size,
+            refinement=refinement,
+            debug=debug,
+        )
 
-    print(f"End of run for {run_model}")
-    return cer, wer
+        print(f"End of run for {run_model}")
+        return cer, wer
+    else:
+        raise ValueError(f"Language {language} is not supported for AfriWhisper")
