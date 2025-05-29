@@ -127,7 +127,13 @@ elif opt_model == "all":
         refinement=opt_refinement,
         debug=opt_debug,
     )
-    runLelapa(test, language=opt_lang, refinement=opt_refinement, debug=opt_debug)
+    runLelapa(
+        test,
+        batch_size=opt_batch_size,
+        language=opt_lang,
+        refinement=opt_refinement,
+        debug=opt_debug,
+    )
     runFacebookMMS(
         test,
         batch_size=opt_batch_size,
