@@ -33,7 +33,7 @@ with open(presets_path, "r") as f:
     presets = json.load(f)
 
 opt_lang = presets["dataset_language"] # 'afr', 'xho', 'zul', 'ven', 'tso', 'tsn', 'ssw', 'nso', 'sot'
-opt_model = presets["model"]  # 'whisper-medium', 'whisper-large', 'afriwhisper', 'lelapa', 'wav2vec', 'deepspeech', 'all'
+opt_model = presets["model"]  # 'whisper-medium', 'whisper-large', 'afriwhisper', 'lelapa', 'wav2vec', 'all'
 opt_batch_size = presets["batch_size"]
 opt_refinement = presets["refinement_method"]
 opt_debug = presets["debug"]
