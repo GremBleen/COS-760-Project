@@ -1,88 +1,156 @@
-# Log in to HuggingFace
+from dotenv import load_dotenv
+import os
 from huggingface_hub import login
 
-login()
+from models.whisper import runWhisper, runAfriWhisper
+from models.lelapa import runLelapa
+from models.wav2vec import runWav2Vec
+from models.facebook_mms import runFacebookMMS
+from models.SM4T import runSM4T
 
-from datasets import load_dataset, concatenate_datasets
+from common import getDataset
 
-"""
-As we are not training any models, we are using the entire dataset.
-"""
+import json
+import pathlib
 
+# afr - Afrikaans
+# xho - Xhosa
+# zul - Zulu
+# ven - Venda
+# tso - Tsonga
+# tsn - Tswana
+# ssw - Swati
+# nso - Sepedi
+# sot - Sotho
 
-def getDataset(opt_lang):
+# Log in to HuggingFace
+load_dotenv()
+login(token=os.getenv("HUGGINGFACE_TOKEN"))
 
-    lang_list = ("afr", "xho", "zul", "ven", "tso", "tsn", "ssw", "nso", "sot")
+# Get the path to the presets.json file in the parent directory
+presets_path = pathlib.Path(__file__).parent.parent / "presets.json"
+with open(presets_path, "r") as f:
+    presets = json.load(f)
 
-    if opt_lang in lang_list:
-        datasets = load_dataset(f"danielshaps/nchlt_speech_{opt_lang}")
-        return concatenate_datasets([split for split in datasets.values()])
-    else:
-        raise ValueError(f"Invalid `opt_lang`: {opt_lang}")
-
-
-import torch
-
-"""
-This is the loop called by each of the models in order to do evaluation
-"""
-
-
-def runLoop(processor, model, dataset):
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model = model.to(device)
-
-    sample = dataset[0]["audio"]
-
-    input_features = processor(
-        sample["array"], sampling_rate=sample["sampling_rate"], return_tensors="pt"
-    ).input_features.to(device)
-
-    # Since not training, it is not necessary to include gradients
-    with torch.no_grad():
-        predicted_ids = model.generate(input_features)
-
-    transcription = processor.batch_decode(predicted_ids, skip_special_tokens=True)
-    print(sample["sampling_rate"])
-    print(dataset[0]["text"])
-    print(transcription)
-
-    return 0
-
-"""
-This block has been separated so that the dataset can accessed without redownload across multiple runs
-"""
-
-# Run options
-opt_lang = "afr"
-opt_model = "lelapa"  # 'whisper-medium', 'whisper-large', 'afriwhisper', 'lelapa', 'wav2vec', 'deepspeech', 'all'
+opt_lang = presets[
+    "dataset_language"
+]  # 'afr', 'xho', 'zul', 'ven', 'tso', 'tsn', 'ssw', 'nso', 'sot'
+opt_model = presets[
+    "model"
+]  # 'whisper-medium', 'whisper-large', 'afriwhisper', 'lelapa', 'wav2vec', 'all'
+opt_batch_size = presets["batch_size"]
+opt_refinement = presets["refinement_method"]
+opt_debug = presets["debug"]
 
 # This is getting the dataset specified by `opt_lang` which takes a while
 test = getDataset(opt_lang)
 
-# Do not alter anything below this comment
-
-from models.whisper import runWhisperMedium, runWhisperLargeV3, runAfriWhisper
-from models.lelapa import runLelapa
-from models.wav2vec import runWav2Vec
-from models.deep_speech import runDeepSpeech
-
 if opt_model == "whisper-medium":
-    runWhisperMedium(test)
+    runWhisper(
+        "medium",
+        test,
+        batch_size=opt_batch_size,
+        language=opt_lang,
+        refinement=opt_refinement,
+        debug=opt_debug,
+    )
 elif opt_model == "whisper-large":
-    runWhisperLargeV3(test)
+    runWhisper(
+        "large",
+        test,
+        batch_size=opt_batch_size,
+        language=opt_lang,
+        refinement=opt_refinement,
+        debug=opt_debug,
+    )
 elif opt_model == "afriwhisper":
-    runAfriWhisper(test)
+    runAfriWhisper(
+        test,
+        batch_size=opt_batch_size,
+        language=opt_lang,
+        refinement=opt_refinement,
+        debug=opt_debug,
+    )
 elif opt_model == "lelapa":
-    runLelapa(test)
+    runLelapa(
+        test,
+        batch_size=opt_batch_size,
+        language=opt_lang,
+        refinement=opt_refinement,
+        debug=opt_debug,
+    )
+elif opt_model == "facebook-mms":
+    runFacebookMMS(
+        test,
+        batch_size=opt_batch_size,
+        language=opt_lang,
+        refinement=opt_refinement,
+        debug=opt_debug,
+    )
 elif opt_model == "wav2vec":
-    runWav2Vec(test)
-elif opt_model == "deepspeech":
-    runDeepSpeech(test)
+    runWav2Vec(
+        test,
+        batch_size=opt_batch_size,
+        language=opt_lang,
+        refinement=opt_refinement,
+        debug=opt_debug,
+    )
+elif opt_model == "sm4t":
+    runSM4T(
+        test,
+        batch_size=opt_batch_size,
+        language=opt_lang,
+        refinement=opt_refinement,
+        debug=opt_debug,
+    )
 elif opt_model == "all":
-    runWhisperMedium(test)
-    runLelapa(test)
-    runWav2Vec(test)
-    runDeepSpeech(test)
+    runWhisper(
+        "medium",
+        test,
+        batch_size=opt_batch_size,
+        language=opt_lang,
+        refinement=opt_refinement,
+        debug=opt_debug,
+    )
+    runWhisper(
+        "large",
+        test,
+        batch_size=opt_batch_size,
+        language=opt_lang,
+        refinement=opt_refinement,
+        debug=opt_debug,
+    )
+    runAfriWhisper(
+        test,
+        batch_size=opt_batch_size,
+        language=opt_lang,
+        refinement=opt_refinement,
+        debug=opt_debug,
+    )
+    runLelapa(
+        test,
+        batch_size=opt_batch_size,
+        language=opt_lang,
+        refinement=opt_refinement,
+        debug=opt_debug,
+    )
+    runFacebookMMS(
+        test,
+        batch_size=opt_batch_size,
+        language=opt_lang,
+        refinement=opt_refinement,
+        debug=opt_debug,
+    )
+    runWav2Vec(
+        test,
+        batch_size=opt_batch_size,
+    )
+    runSM4T(
+        test,
+        batch_size=opt_batch_size,
+        language=opt_lang,
+        refinement=opt_refinement,
+        debug=opt_debug,
+    )
 else:
     raise ValueError(f"Invalid `opt_model`: {opt_model}")

@@ -1,10 +1,22 @@
 from math import ceil
+from transformers import Wav2Vec2ForCTC, AutoProcessor
 import torch
-from transformers import AutoProcessor, AutoModelForCTC
+
 from common import evaluateTranscription, resample, saveResults
 
 
-def runLoop(processor, model, dataset, language, batch_size, refinement=False, debug=False):
+def getLanguageCode(language):
+    language_codes = {
+        "afr": "afr",
+        "xho": "xho",
+        "zul": "zul",
+    }
+    return language_codes.get(language, None)
+
+
+def runLoop(
+    processor, model, dataset, language, batch_size, refinement=False, debug=False
+):
     if hasattr(torch.backends, "mps"):
         try:
             has_mps = torch.backends.mps.is_available()
@@ -43,9 +55,18 @@ def runLoop(processor, model, dataset, language, batch_size, refinement=False, d
             batch_audio.append(resampled)
             batch_transcript.append(transcript)
 
+        language_code = getLanguageCode(language)
+        if language_code is None:
+            raise ValueError(
+                f"Unsupported language: {language}. Not supported by the facebook MMS model."
+            )
+
+        processor.tokenizer.set_target_lang(getLanguageCode(language))
+        model.load_adapter(getLanguageCode(language))
+
         inputs = processor(
             batch_audio,
-            sampling_rate=sample_rate,  # Ensuring that using 16kHz
+            sampling_rate=16000,  # Ensuring that using 16kHz
             return_tensors="pt",
             padding=True,  # Making all audio files the same length
             return_attention_mask=True,
@@ -88,21 +109,21 @@ def runLoop(processor, model, dataset, language, batch_size, refinement=False, d
     return cer, wer
 
 
-def runLelapa(test, batch_size=20, language="xho", refinement=False, debug=False):
-    run_model = "lelapa/mms-1b-fl102-xho-15"
+def runFacebookMMS(dataset, language, batch_size=20, refinement=False, debug=False):
+    run_model = "facebook/mms-1b-fl102"
     print(f"Running on {run_model}")
 
     processor = AutoProcessor.from_pretrained(run_model)
-    model = AutoModelForCTC.from_pretrained(run_model)
-    model.config.forced_decoder_ids = None  # Disable forced decoder ids for this model
+    model = Wav2Vec2ForCTC.from_pretrained(run_model)
 
+    # print(processor.tokenizer.vocab.keys())
     runLoop(
         processor=processor,
         model=model,
-        dataset=test,
+        dataset=dataset,
+        refinement=refinement,
         language=language,
         batch_size=batch_size,
-        refinement=refinement,
         debug=debug,
     )
 
