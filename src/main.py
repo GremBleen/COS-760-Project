@@ -6,6 +6,7 @@ from models.whisper import runWhisper, runAfriWhisper
 from models.lelapa import runLelapa
 from models.wav2vec import runWav2Vec
 from models.deep_speech import runDeepSpeech
+from models.SM4T import runSM4T
 
 from common import getDataset
 
@@ -52,12 +53,15 @@ elif opt_model == "wav2vec":
     runWav2Vec(test, batch_size = opt_batch_size, language = opt_lang, refinement=opt_refinement, debug=opt_debug)
 elif opt_model == "deepspeech":
     runDeepSpeech(test)
+elif opt_model == "sm4t":
+    runSM4T(test, batch_size = opt_batch_size, language = opt_lang, refinement=opt_refinement, debug=opt_debug)
 elif opt_model == "all":
     runWhisper("medium", test, batch_size = opt_batch_size, language = opt_lang, refinement=opt_refinement, debug=opt_debug)
     runWhisper("large", test, batch_size = opt_batch_size, language = opt_lang, refinement=opt_refinement, debug=opt_debug)
     runAfriWhisper(test, batch_size = opt_batch_size, language = opt_lang, refinement=opt_refinement, debug=opt_debug)
-    runLelapa(test)
+    runLelapa(test, language = opt_lang, refinement=opt_refinement, debug=opt_debug)
     runWav2Vec(test, batch_size = opt_batch_size,)
     runDeepSpeech(test)
+    runSM4T(test, batch_size = opt_batch_size, language = opt_lang, refinement=opt_refinement, debug=opt_debug)
 else:
     raise ValueError(f"Invalid `opt_model`: {opt_model}")
