@@ -21,7 +21,7 @@ def getLanguageCode(language):
 
 
 def runLoop(
-    processor, model, dataset, language, batch_size=20, refinement=False, debug=False
+    processor, model, dataset, language, run_model, batch_size=20, refinement=False, debug=False
 ):
     if hasattr(torch.backends, "mps"):
         try:
@@ -111,9 +111,6 @@ def runLoop(
     cer /= num_batches
     wer /= num_batches
 
-    run_model = model.config._name_or_path.split("/")[
-        -1
-    ]  # Get the model name from the config
     if run_model == "openai/whisper-medium":
         run_model = "whisper-medium"
     elif run_model == "openai/whisper-large-v3":
@@ -158,6 +155,7 @@ def runWhisper(
         model=model,
         dataset=test,
         language=language,
+        run_model=run_model,
         batch_size=batch_size,
         refinement=refinement,
         debug=debug,
@@ -183,6 +181,7 @@ def runAfriWhisper(test, batch_size=20, language=None, refinement=False, debug=F
             processor=processor,
             model=model,
             dataset=test,
+            run_model=run_model,
             batch_size=batch_size,
             language=language,
             refinement=refinement,
