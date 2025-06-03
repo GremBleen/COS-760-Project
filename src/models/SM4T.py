@@ -93,6 +93,7 @@ def runSM4T(dataset, language=None, batch_size=20, refinement=False, debug=False
             temp_cer, temp_wer = evaluateTranscription(
                 reference_text=reference_text,
                 predicted_text=predicted_text,
+                batch_num=i,
                 output=debug,
             )
 

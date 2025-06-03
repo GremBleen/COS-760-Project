@@ -94,6 +94,7 @@ def runWav2Vec(dataset, language=None, batch_size=20, refinement=False, debug=Fa
             temp_cer, temp_wer = evaluateTranscription(
                 reference_text=reference_text,
                 predicted_text=predicted_text,
+                batch_num=i,
                 output=debug,
             )  # We are getting the error over the whole dataset so that prompts to not have a disproportionate effect on the results
 

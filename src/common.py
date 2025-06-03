@@ -23,7 +23,7 @@ def normalizeText(predicted_text):
     return text
 
 
-def evaluateTranscription(reference_text, predicted_text, output = False):
+def evaluateTranscription(reference_text, predicted_text, batch_num, output = False):
     normalized_reference = normalizeText(reference_text)
     normalized_predicted = normalizeText(predicted_text)
     char_err_rate = cer(
@@ -36,6 +36,7 @@ def evaluateTranscription(reference_text, predicted_text, output = False):
     )
 
     if output:
+        print(f"Batch Number: {batch_num}")
         print(f"Reference: {normalized_reference}")
         print()
         print(f"Prediction: {normalized_predicted}")
