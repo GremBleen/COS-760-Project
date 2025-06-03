@@ -10,7 +10,8 @@ def getDataset(opt_lang):
 
     if opt_lang in lang_list:
         datasets = load_dataset(f"danielshaps/nchlt_speech_{opt_lang}")
-        return concatenate_datasets([split for split in datasets.values()])
+        # return concatenate_datasets([split for split in datasets.values()])
+        return datasets["test"]  # Assuming we want the test split
     else:
         raise ValueError(f"Invalid `opt_lang`: {opt_lang}")
 
