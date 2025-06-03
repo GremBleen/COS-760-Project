@@ -92,7 +92,10 @@ def runLoop(
 
         # Evaluate the transcription
         temp_cer, temp_wer = evaluateTranscription(
-            reference_text=reference_text, predicted_text=predicted_text, output=debug
+            reference_text=reference_text,
+            predicted_text=predicted_text,
+            batch_num=i,
+            output=debug,
         )
 
         results_dict[i] = (temp_cer, temp_wer)
@@ -104,7 +107,12 @@ def runLoop(
     wer /= num_batches
 
     # saveResults_V1(cer, wer, language=language, model="lelapa", refinement=refinement)
-    saveResults(results_dict, language=language, model="lelapa", refinement=refinement)
+    saveResults(
+        results_dict=results_dict,
+        language=language,
+        model="lelapa",
+        refinement=refinement,
+    )
 
     return cer, wer
 

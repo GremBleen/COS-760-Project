@@ -2,7 +2,7 @@ from transformers import (
     WhisperProcessor,
     WhisperForConditionalGeneration,
 )
-from common import evaluateTranscription, resample
+from common import evaluateTranscription, resample, saveResults
 import torch
 from math import ceil
 
@@ -10,6 +10,7 @@ from math import ceil
 # - model.config.forced_decoder_ids is used to set the language and task for the Whisper model. By setting it to None, it forces the model into a multi-language mode.
 # - Padding is used to ensure that all audio files within a batch are of the same length
 # - The attention mask then identifies which tokens within an audio file needs to be processed - ignoring the padded tokens.
+
 
 # This is mapping to the available languages in the Whisper model to try improve results
 def getLanguageCode(language):
@@ -19,7 +20,9 @@ def getLanguageCode(language):
     return language_codes.get(language, None)
 
 
-def runLoop(processor, model, dataset, batch_size = 20, refinement=False, debug=False):
+def runLoop(
+    processor, model, dataset, language, batch_size=20, refinement=False, debug=False
+):
     if hasattr(torch.backends, "mps"):
         try:
             has_mps = torch.backends.mps.is_available()
@@ -39,6 +42,8 @@ def runLoop(processor, model, dataset, batch_size = 20, refinement=False, debug=
     # Character Error Rate (CER) and Word Error Rate (WER) initialisation
     cer = 0
     wer = 0
+
+    results_dict = {}
 
     for i in range(num_batches):
         start_index = i * batch_size
@@ -92,18 +97,43 @@ def runLoop(processor, model, dataset, batch_size = 20, refinement=False, debug=
 
         # We are getting the error over the whole dataset so that prompts to not have a disproportionate effect on the results
         temp_cer, temp_wer = evaluateTranscription(
-            reference_text=reference_text, predicted_text=predicted_text, output=debug
+            reference_text=reference_text,
+            predicted_text=predicted_text,
+            batch_num=i,
+            output=debug,
         )
+
+        results_dict[i] = (temp_cer, temp_wer)
+
         cer += temp_cer
         wer += temp_wer
 
     cer /= num_batches
     wer /= num_batches
 
+    run_model = model.config._name_or_path.split("/")[
+        -1
+    ]  # Get the model name from the config
+    if run_model == "openai/whisper-medium":
+        run_model = "whisper-medium"
+    elif run_model == "openai/whisper-large-v3":
+        run_model = "whisper-large"
+    elif run_model == "intronhealth/afrispeech-whisper-medium-all":
+        run_model = "afri-whisper-medium"
+
+    saveResults(
+        results_dict=results_dict,
+        language=language,
+        model=run_model,
+        refinement=refinement,
+    )
+
     return cer, wer
 
 
-def runWhisper(model, test, batch_size = 20, language=None, refinement=False, debug=False):
+def runWhisper(
+    model, test, batch_size=20, language=None, refinement=False, debug=False
+):
     if model == "medium":
         run_model = "openai/whisper-medium"
     elif model == "large":
@@ -127,6 +157,7 @@ def runWhisper(model, test, batch_size = 20, language=None, refinement=False, de
         processor=processor,
         model=model,
         dataset=test,
+        language=language,
         batch_size=batch_size,
         refinement=refinement,
         debug=debug,
@@ -136,7 +167,7 @@ def runWhisper(model, test, batch_size = 20, language=None, refinement=False, de
     return cer, wer
 
 
-def runAfriWhisper(test, batch_size = 20, language=None, refinement=False, debug=False):
+def runAfriWhisper(test, batch_size=20, language=None, refinement=False, debug=False):
     run_model = "intronhealth/afrispeech-whisper-medium-all"
     print(f"Running {language} on {run_model} with batch size {batch_size}")
 
@@ -153,6 +184,7 @@ def runAfriWhisper(test, batch_size = 20, language=None, refinement=False, debug
             model=model,
             dataset=test,
             batch_size=batch_size,
+            language=language,
             refinement=refinement,
             debug=debug,
         )

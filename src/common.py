@@ -10,7 +10,8 @@ def getDataset(opt_lang):
 
     if opt_lang in lang_list:
         datasets = load_dataset(f"danielshaps/nchlt_speech_{opt_lang}")
-        return concatenate_datasets([split for split in datasets.values()])
+        # return concatenate_datasets([split for split in datasets.values()])
+        return datasets["test"]  # Assuming we want the test split
     else:
         raise ValueError(f"Invalid `opt_lang`: {opt_lang}")
 
@@ -23,7 +24,7 @@ def normalizeText(predicted_text):
     return text
 
 
-def evaluateTranscription(reference_text, predicted_text, output = False):
+def evaluateTranscription(reference_text, predicted_text, batch_num, output = False):
     normalized_reference = normalizeText(reference_text)
     normalized_predicted = normalizeText(predicted_text)
     char_err_rate = cer(
@@ -36,6 +37,7 @@ def evaluateTranscription(reference_text, predicted_text, output = False):
     )
 
     if output:
+        print(f"Batch Number: {batch_num}")
         print(f"Reference: {normalized_reference}")
         print()
         print(f"Prediction: {normalized_predicted}")

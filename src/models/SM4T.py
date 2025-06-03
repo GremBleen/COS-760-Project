@@ -1,7 +1,8 @@
 from math import ceil
 from transformers import SeamlessM4Tv2ForSpeechToText, AutoProcessor
 import torch
-from common import evaluateTranscription, resample
+from common import evaluateTranscription, resample, saveResults
+
 
 def getLanguageCode(language):
     language_codes = {"afr": "afr", "zul": "zul"}
@@ -38,6 +39,8 @@ def runSM4T(dataset, language=None, batch_size=20, refinement=False, debug=False
 
         cer = 0
         wer = 0
+
+        results_dict = {}
 
         for i in range(num_batches):
             start_index = i * batch_size
@@ -90,13 +93,26 @@ def runSM4T(dataset, language=None, batch_size=20, refinement=False, debug=False
             temp_cer, temp_wer = evaluateTranscription(
                 reference_text=reference_text,
                 predicted_text=predicted_text,
+                batch_num=i,
                 output=debug,
             )
+
+            results_dict[i] = (temp_cer, temp_wer)
+
             cer += temp_cer
             wer += temp_wer
 
         cer /= num_batches
         wer /= num_batches
 
+        saveResults(
+            results_dict=results_dict,
+            language=language,
+            model="sm4t",
+            refinement=refinement,
+        )
+
+        print(f"End of run for {run_model}")
+        return cer, wer
     else:
         raise ValueError(f"Language {language} is not supported for SM4T")
