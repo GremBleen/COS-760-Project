@@ -21,7 +21,14 @@ def getLanguageCode(language):
 
 
 def runLoop(
-    processor, model, dataset, language, run_model, batch_size=20, refinement=False, debug=False
+    processor,
+    model,
+    dataset,
+    language,
+    run_model,
+    batch_size=20,
+    refinement=False,
+    debug=False,
 ):
     if hasattr(torch.backends, "mps"):
         try:
@@ -169,26 +176,26 @@ def runAfriWhisper(test, batch_size=20, language=None, refinement=False, debug=F
     run_model = "intronhealth/afrispeech-whisper-medium-all"
     print(f"Running {language} on {run_model} with batch size {batch_size}")
 
-    if language == "xho":
-        processor = WhisperProcessor.from_pretrained(run_model)
-        model = WhisperForConditionalGeneration.from_pretrained(run_model)
-        model.config.forced_decoder_ids = (
-            None  # Setting the language is not supported in this model
-        )
-        model.config.suppress_tokens = None  # Suppressing special tokens - for the AfriSpeech model, the token list is empty causing an error when trying to run if not set to None
+    # AfriSpeech Whisper was trained on multiple languages within the AfriSpeech-200 dataset.
+    # It does not support specific language setting so it is assumed that it will do inference and was trained using all the langauges of the dataset - thus it may produce poor results.
 
-        cer, wer = runLoop(
-            processor=processor,
-            model=model,
-            dataset=test,
-            run_model=run_model,
-            batch_size=batch_size,
-            language=language,
-            refinement=refinement,
-            debug=debug,
-        )
+    processor = WhisperProcessor.from_pretrained(run_model)
+    model = WhisperForConditionalGeneration.from_pretrained(run_model)
+    model.config.forced_decoder_ids = (
+        None  # Setting the language is not supported in this model
+    )
+    model.config.suppress_tokens = None  # Suppressing special tokens - for the AfriSpeech model, the token list is empty causing an error when trying to run if not set to None
 
-        print(f"End of run for {run_model}")
-        return cer, wer
-    else:
-        raise ValueError(f"Language {language} is not supported for AfriWhisper")
+    cer, wer = runLoop(
+        processor=processor,
+        model=model,
+        dataset=test,
+        run_model=run_model,
+        batch_size=batch_size,
+        language=language,
+        refinement=refinement,
+        debug=debug,
+    )
+
+    print(f"End of run for {run_model}")
+    return cer, wer
