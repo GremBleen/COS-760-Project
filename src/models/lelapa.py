@@ -4,7 +4,9 @@ from transformers import AutoProcessor, AutoModelForCTC
 from common import evaluateTranscription, resample, saveResults
 
 
-def runLoop(processor, model, dataset, language, batch_size, refinement=False, debug=False):
+def runLoop(
+    processor, model, dataset, language, batch_size, refinement=False, debug=False
+):
     if hasattr(torch.backends, "mps"):
         try:
             has_mps = torch.backends.mps.is_available()
@@ -82,8 +84,12 @@ def runLoop(processor, model, dataset, language, batch_size, refinement=False, d
     cer /= num_batches
     wer /= num_batches
 
-    # saveResults_V1(cer, wer, language=language, model="lelapa", refinement=refinement)
-    saveResults(results_dict, language=language, model="lelapa", refinement=refinement)
+    saveResults(
+        results_dict=results_dict,
+        language=language,
+        model="lelapa",
+        refinement=refinement,
+    )
 
     return cer, wer
 

@@ -104,7 +104,12 @@ def runLoop(
     wer /= num_batches
 
     # saveResults_V1(cer, wer, language=language, model="lelapa", refinement=refinement)
-    saveResults(results_dict, language=language, model="lelapa", refinement=refinement)
+    saveResults(
+        results_dict=results_dict,
+        language=language,
+        model="lelapa",
+        refinement=refinement,
+    )
 
     return cer, wer
 

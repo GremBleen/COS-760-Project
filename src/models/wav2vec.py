@@ -2,7 +2,7 @@ from math import ceil
 from transformers import Wav2Vec2Processor, Wav2Vec2ForCTC
 import torch
 
-from common import evaluateTranscription, resample
+from common import evaluateTranscription, resample, saveResults
 
 
 def getLanguageCode(language):
@@ -52,6 +52,8 @@ def runWav2Vec(dataset, language=None, batch_size=20, refinement=False, debug=Fa
         cer = 0
         wer = 0
 
+        results_dict = {}
+
         for i in range(num_batches):
             start_index = i * batch_size
             end_index = min((i + 1) * batch_size, len(dataset))
@@ -94,13 +96,23 @@ def runWav2Vec(dataset, language=None, batch_size=20, refinement=False, debug=Fa
                 predicted_text=predicted_text,
                 output=debug,
             )  # We are getting the error over the whole dataset so that prompts to not have a disproportionate effect on the results
+
+            results_dict[i] = (temp_cer, temp_wer)
+
             cer += temp_cer
             wer += temp_wer
+
         cer /= num_batches
         wer /= num_batches
 
+        saveResults(
+            results_dict=results_dict,
+            language=language,
+            run_model="wav2vec",
+            refinement=refinement,
+        )
+
         print(f"End of run for {run_model}")
         return cer, wer
-
     else:
         raise ValueError(f"Language {language} is not supported for wav2vec")
