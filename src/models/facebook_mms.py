@@ -25,9 +25,10 @@ def runLoop(
     else:
         has_mps = False
 
-    device = torch.device(
-        "cuda" if torch.cuda.is_available() else "mps" if has_mps else "cpu"
-    )
+    # device = torch.device(
+    #     "cuda" if torch.cuda.is_available() else "mps" if has_mps else "cpu"
+    # )
+    device = torch.device("cpu")
     model = model.to(device)
 
     # Using mini-batching to make it faster
