@@ -39,7 +39,7 @@ def runLoop(
 
     results_dict = {}
 
-    for i in range(len(dataset)):
+    for i in range(num_batches):
         start_index = i * batch_size
         end_index = min((i + 1) * batch_size, len(dataset))
 
@@ -110,7 +110,7 @@ def runLoop(
     saveResults(
         results_dict=results_dict,
         language=language,
-        model="lelapa",
+        model="facebook-mms",
         refinement=refinement,
     )
 
