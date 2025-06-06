@@ -2,7 +2,7 @@ from math import ceil
 from transformers import Wav2Vec2ForCTC, AutoProcessor
 import torch
 
-from common import evaluateTranscription, resample, saveResults
+from common import evaluateTranscription, getWordList, resample, saveResults
 
 
 def getLanguageCode(language):
@@ -39,6 +39,8 @@ def runLoop(
     wer = 0
 
     results_dict = {}
+
+    word_list = getWordList(language)
 
     for i in range(num_batches):
         start_index = i * batch_size
@@ -90,6 +92,14 @@ def runLoop(
         for instance, pred in zip(batch_transcript, transcription):
             reference_text += instance + "\n"
             predicted_text += pred + "\n"
+
+        # If refinement is enabled, refine the predicted text
+        if refinement is not "none":
+            from common import refinementMethod
+
+            predicted_text = refinementMethod(
+                predicted_text, refinement=refinement, word_list=word_list
+            )
 
         # Evaluate the transcription
         temp_cer, temp_wer = evaluateTranscription(
