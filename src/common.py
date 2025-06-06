@@ -26,22 +26,18 @@ def normalizeText(predicted_text):
 
 
 def refinementMethod(predicted_text, refinement, word_list):
-    if refinement == "none":
-        return predicted_text
-    else:
-        # Use fuzzy matching to match words from the word list
-        from fuzzywuzzy import process
+    from fuzzywuzzy import process
 
-        words = predicted_text.split()
-        refined_words = []
-        for word in words:
-            # Find the closest match in the word list
-            match, score = process.extractOne(word, word_list)
-            if score >= 80:
-                refined_words.append(match)
-            else:
-                refined_words.append(word)
-        return " ".join(refined_words)
+    words = predicted_text.split()
+    refined_words = []
+    for word in words:
+        # Find the closest match in the word list
+        match, score = process.extractOne(word, word_list)
+        if score >= 80:
+            refined_words.append(match)
+        else:
+            refined_words.append(word)
+    return " ".join(refined_words)
 
 
 def getWordList(language):
@@ -91,19 +87,6 @@ def resample(waveform, current_sample_rate, required_sample_rate):
         return resampled
     else:
         return waveform
-
-
-# def saveResults_V1(cer, wer, language, model, refinement, filename=None):
-#     if filename is None:
-#         from datetime import datetime
-#         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-#         filename = f"{language}_{model}_{refinement}_{timestamp}.txt"
-#     # Save the results to a file that displays the model, language, and refinement method as well as the CER and WER over the dataset
-#     with open(filename, "a") as f:
-#         f.write(f"Model: {model}, Language: {language}, Refinement: {refinement}\n")
-#         f.write(f"CER: {cer:.4f}, WER: {wer:.4f}\n")
-#         f.write("-" * 40 + "\n")
-
 
 def saveResults(results_dict, language, model, refinement, filename=None):
     import csv

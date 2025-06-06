@@ -40,7 +40,10 @@ def runLoop(
 
     results_dict = {}
 
-    word_list = getWordList(language)
+    if refinement is not False:
+        from common import getWordList
+
+        word_list = getWordList(language)
 
     for i in range(num_batches):
         start_index = i * batch_size
@@ -94,7 +97,7 @@ def runLoop(
             predicted_text += pred + "\n"
 
         # If refinement is enabled, refine the predicted text
-        if refinement is not "none":
+        if refinement is not False:
             from common import refinementMethod
 
             predicted_text = refinementMethod(
