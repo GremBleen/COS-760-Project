@@ -88,6 +88,19 @@ def resample(waveform, current_sample_rate, required_sample_rate):
     else:
         return waveform
 
+
+def trimSilence(waveform, sample_rate):
+    import librosa
+
+    # Silence trimming using librosa
+    trimmed_waveform, _ = librosa.effects.trim(
+        waveform, top_db=50, frame_length=2048, hop_length=512
+    )
+    # Frame length is the size of a single frame (or section of audio)
+    # Hop length is the number sections to break a frame into
+    
+    return trimmed_waveform
+
 def saveResults(results_dict, language, model, refinement, filename=None):
     import csv
 
