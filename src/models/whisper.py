@@ -52,6 +52,11 @@ def runLoop(
 
     results_dict = {}
 
+    if refinement is not False:
+        from common import getWordList
+
+        word_list = getWordList(language=language, refinement=refinement)
+
     for i in range(num_batches):
         start_index = i * batch_size
         end_index = min((i + 1) * batch_size, len(dataset))
@@ -65,6 +70,10 @@ def runLoop(
             sample_rate = sample["audio"]["sampling_rate"]
             transcript = sample["text"]
             resampled = resample(waveform, sample_rate, 16000)
+            if refinement is not False:
+                from common import trimSilence
+                # Trim silence from the waveform if refinement is enabled
+                resampled = trimSilence(resampled, 16000)
             batch_audio.append(resampled)
             batch_transcript.append(transcript)
 
@@ -101,6 +110,14 @@ def runLoop(
         for instance in zip(batch_transcript, transcription):
             reference_text += instance[0] + "\n"
             predicted_text += instance[1] + "\n"
+
+        # If refinement is enabled, refine the predicted text
+        if refinement is not False:
+            from common import refinementMethod
+
+            predicted_text = refinementMethod(
+                predicted_text, refinement=refinement, word_list=word_list
+            )
 
         # We are getting the error over the whole dataset so that prompts to not have a disproportionate effect on the results
         temp_cer, temp_wer = evaluateTranscription(
