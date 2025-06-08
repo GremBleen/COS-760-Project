@@ -60,6 +60,10 @@ def runSM4T(dataset, language=None, batch_size=20, refinement=False, debug=False
                 sample_rate = sample["audio"]["sampling_rate"]
                 transcript = sample["text"]
                 resampled = resample(waveform, sample_rate, 16000)
+                if refinement is not False:
+                    from common import trimSilence
+                    # Trim silence from the waveform if refinement is enabled
+                    resampled = trimSilence(resampled, 16000)
                 batch_audio.append(resampled)
                 batch_transcript.append(transcript)
 
