@@ -29,6 +29,11 @@ def runLoop(
 
     results_dict = {}
 
+    if refinement is not False:
+        from common import getWordList
+
+        word_list = getWordList(language=language, refinement=refinement)
+
     for i in range(num_batches):
         start_index = i * batch_size
         end_index = min((i + 1) * batch_size, len(dataset))
@@ -42,6 +47,10 @@ def runLoop(
             sample_rate = sample["audio"]["sampling_rate"]
             transcript = sample["text"]
             resampled = resample(waveform, sample_rate, 16000)
+            if refinement is not False:
+                from common import trimSilence
+                # Trim silence from the waveform if refinement is enabled
+                resampled = trimSilence(resampled, 16000)
             batch_audio.append(resampled)
             batch_transcript.append(transcript)
 
@@ -70,6 +79,14 @@ def runLoop(
         for instance, pred in zip(batch_transcript, transcription):
             reference_text += instance + "\n"
             predicted_text += pred + "\n"
+
+        # If refinement is enabled, refine the predicted text
+        if refinement is not False:
+            from common import refinementMethod
+
+            predicted_text = refinementMethod(
+                predicted_text, refinement=refinement, word_list=word_list
+            )
 
         # Evaluate the transcription
         temp_cer, temp_wer = evaluateTranscription(

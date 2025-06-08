@@ -5,13 +5,14 @@ import string
 import torch
 import torchaudio
 
-def getDataset(opt_lang):
+
+def getDataset(opt_lang, option="test"):
     lang_list = ("afr", "xho", "zul", "ven", "tso", "tsn", "ssw", "nso", "sot")
 
     if opt_lang in lang_list:
         datasets = load_dataset(f"danielshaps/nchlt_speech_{opt_lang}")
         # return concatenate_datasets([split for split in datasets.values()])
-        return datasets["test"]  # Assuming we want the test split
+        return datasets[option]  # Assuming we want the test split
     else:
         raise ValueError(f"Invalid `opt_lang`: {opt_lang}")
 
@@ -24,9 +25,37 @@ def normalizeText(predicted_text):
     return text
 
 
-def evaluateTranscription(reference_text, predicted_text, batch_num, output = False):
+def refinementMethod(predicted_text, refinement, word_list):
+    from fuzzywuzzy import process
+
+    words = predicted_text.split()
+    refined_words = []
+    for word in words:
+        # Find the closest match in the word list
+        match, score = process.extractOne(word, word_list)
+        if score >= 80:
+            refined_words.append(match)
+        else:
+            refined_words.append(word)
+    return " ".join(refined_words)
+
+
+def getWordList(language):
+    # Load the word list for the specified language, should contain a list of valid words for the language with no duplicates
+    dataset = getDataset(language, option="train")
+    word_list = set()
+    for sample in dataset:
+        transcript = sample["text"]
+        words = transcript.split()
+        for word in words:
+            word_list.add(word.lower())
+    return list(word_list)
+
+
+def evaluateTranscription(reference_text, predicted_text, batch_num, output=False):
     normalized_reference = normalizeText(reference_text)
     normalized_predicted = normalizeText(predicted_text)
+
     char_err_rate = cer(
         reference=normalized_reference,
         hypothesis=normalized_predicted,
@@ -48,34 +77,36 @@ def evaluateTranscription(reference_text, predicted_text, batch_num, output = Fa
 
     return char_err_rate, word_err_rate
 
+
 def resample(waveform, current_sample_rate, required_sample_rate):
     if current_sample_rate != required_sample_rate:
         resampler = torchaudio.transforms.Resample(
             orig_freq=current_sample_rate, new_freq=required_sample_rate
         )  # ensuring that using 16kHz
-        resampled = resampler(
-            torch.tensor(waveform, dtype=torch.float32)
-        ).numpy()
+        resampled = resampler(torch.tensor(waveform, dtype=torch.float32)).numpy()
         return resampled
     else:
         return waveform
 
-# def saveResults_V1(cer, wer, language, model, refinement, filename=None):
-#     if filename is None:
-#         from datetime import datetime
-#         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-#         filename = f"{language}_{model}_{refinement}_{timestamp}.txt"
-#     # Save the results to a file that displays the model, language, and refinement method as well as the CER and WER over the dataset
-#     with open(filename, "a") as f:
-#         f.write(f"Model: {model}, Language: {language}, Refinement: {refinement}\n")
-#         f.write(f"CER: {cer:.4f}, WER: {wer:.4f}\n")
-#         f.write("-" * 40 + "\n")
+
+def trimSilence(waveform, sample_rate):
+    import librosa
+
+    # Silence trimming using librosa
+    trimmed_waveform, _ = librosa.effects.trim(
+        waveform, top_db=50, frame_length=2048, hop_length=512
+    )
+    # Frame length is the size of a single frame (or section of audio)
+    # Hop length is the number sections to break a frame into
+    
+    return trimmed_waveform
 
 def saveResults(results_dict, language, model, refinement, filename=None):
     import csv
 
     if filename is None:
         from datetime import datetime
+
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         filename = f"{language}_{model}_{refinement}_{timestamp}.csv"
 

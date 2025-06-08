@@ -2,7 +2,7 @@ from math import ceil
 from transformers import Wav2Vec2ForCTC, AutoProcessor
 import torch
 
-from common import evaluateTranscription, resample, saveResults
+from common import evaluateTranscription, getWordList, resample, saveResults
 
 
 def getLanguageCode(language):
@@ -25,10 +25,10 @@ def runLoop(
     else:
         has_mps = False
 
-    # device = torch.device(
-    #     "cuda" if torch.cuda.is_available() else "mps" if has_mps else "cpu"
-    # )
-    device = torch.device("cpu")
+    device = torch.device(
+        "cuda" if torch.cuda.is_available() else "mps" if has_mps else "cpu"
+    )
+    # device = torch.device("cpu")
     model = model.to(device)
 
     # Using mini-batching to make it faster
@@ -39,6 +39,11 @@ def runLoop(
     wer = 0
 
     results_dict = {}
+
+    if refinement is not False:
+        from common import getWordList
+
+        word_list = getWordList(language)
 
     for i in range(num_batches):
         start_index = i * batch_size
@@ -53,6 +58,10 @@ def runLoop(
             sample_rate = sample["audio"]["sampling_rate"]
             transcript = sample["text"]
             resampled = resample(waveform, sample_rate, 16000)
+            if refinement is not False:
+                from common import trimSilence
+                # Trim silence only if refinement is enabled
+                resampled = trimSilence(resampled, 16000)
             batch_audio.append(resampled)
             batch_transcript.append(transcript)
 
@@ -90,6 +99,14 @@ def runLoop(
         for instance, pred in zip(batch_transcript, transcription):
             reference_text += instance + "\n"
             predicted_text += pred + "\n"
+
+        # If refinement is enabled, refine the predicted text
+        if refinement is not False:
+            from common import refinementMethod
+
+            predicted_text = refinementMethod(
+                predicted_text, refinement=refinement, word_list=word_list
+            )
 
         # Evaluate the transcription
         temp_cer, temp_wer = evaluateTranscription(
