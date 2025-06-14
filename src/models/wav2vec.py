@@ -128,7 +128,7 @@ def runWav2Vec(dataset, language=None, batch_size=20, refinement=False, debug=Fa
         saveResults(
             results_dict=results_dict,
             language=language,
-            run_model="wav2vec",
+            model="wav2vec",
             refinement=refinement,
         )
 
