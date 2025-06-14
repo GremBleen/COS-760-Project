@@ -45,6 +45,7 @@ def runWav2Vec(dataset, language=None, batch_size=20, refinement=False, debug=Fa
         device = torch.device(
             "cuda" if torch.cuda.is_available() else "mps" if has_mps else "cpu"
         )
+        # device = torch.device("cpu")
         model = model.to(device)
 
         num_batches = ceil(len(dataset) / batch_size)
@@ -57,7 +58,7 @@ def runWav2Vec(dataset, language=None, batch_size=20, refinement=False, debug=Fa
         if refinement is not False:
             from common import getWordList
 
-            word_list = getWordList(language=language, refinement=refinement)
+            word_list = getWordList(language=language)
 
         for i in range(num_batches):
             start_index = i * batch_size
