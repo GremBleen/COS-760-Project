@@ -7,3 +7,6 @@ Pipfile
 
 
 *.DS_Store
+.python-version
+pyproject.toml
+uv.lock
