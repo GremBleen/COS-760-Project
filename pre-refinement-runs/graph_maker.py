@@ -3,6 +3,7 @@ import glob
 import csv
 import matplotlib.pyplot as plt
 
+
 def parse_filename(filename):
     # Assumes filename format: language_model_refinement_timestamp.csv
     base = os.path.basename(filename)
@@ -14,46 +15,74 @@ def parse_filename(filename):
     refinement = parts[2]
     return language, model, refinement
 
+
 def read_csv_data(filepath):
-    batches = []
     cers = []
     wers = []
     with open(filepath, newline="") as f:
         reader = csv.DictReader(f)
         for row in reader:
-            batches.append(int(row["Batch"]))
             cers.append(float(row["CER"]))
             wers.append(float(row["WER"]))
-    return batches, cers, wers
+    return cers, wers
+
+
+def get_language_code(language):
+    language_codes = {
+        "afr": "Afrikaans",
+        "xho": "Xhosa",
+        "zul": "Zulu",
+    }
+    return language_codes.get(language.lower(), None)
+
 
 def main():
     csv_files = glob.glob("*.csv")
-    model_groups = {}
+    language_groups = {}
 
     for csv_file in csv_files:
         parsed = parse_filename(csv_file)
         if not parsed:
             continue
-        _, model, _ = parsed
-        if model not in model_groups:
-            model_groups[model] = []
-        model_groups[model].append(csv_file)
+        language, model, _ = parsed  # Get model name here
+        if language not in language_groups:
+            language_groups[language] = []
+        language_groups[language].append(
+            (csv_file, model)
+        )  # Store tuple of file and model
 
-    for model, files in model_groups.items():
-        plt.figure(figsize=(10, 6))
-        for csv_file in files:
-            batches, cers, wers = read_csv_data(csv_file)
-            label = os.path.splitext(os.path.basename(csv_file))[0]
-            plt.scatter(batches, cers, label=f"{label} CER", marker="o")
-            plt.scatter(batches, wers, label=f"{label} WER", marker="x")
-        plt.title(f"Scatter Plot for Model: {model}")
-        plt.xlabel("Batch")
-        plt.ylabel("Error Rate")
-        plt.legend()
-        plt.grid(True)
-        plt.tight_layout()
-        plt.savefig(f"{model}_scatter_plot.png")
+    for language, files in language_groups.items():
+        plt.figure(figsize=(12, 6))
+        cer_data = []
+        wer_data = []
+        labels = []
+        for csv_file, model in files:
+            cers, wers = read_csv_data(csv_file)
+            cer_data.append(cers)
+            wer_data.append(wers)
+            labels.append(model)  # Use model name as label
+
+        # Boxplot for CER
+        plt.subplot(1, 2, 1)
+        plt.boxplot(cer_data, labels=labels, patch_artist=True)
+        plt.title(f"{get_language_code(language)} CER")
+        plt.ylabel("CER")
+        plt.xticks(rotation=45, ha="right")
+
+        # Boxplot for WER
+        plt.subplot(1, 2, 2)
+        plt.boxplot(wer_data, labels=labels, patch_artist=True)
+        plt.title(f"{get_language_code(language)} WER")
+        plt.ylabel("WER")
+        plt.xticks(rotation=45, ha="right")
+
+        plt.suptitle(
+            f"Box and Whisker Plots for Language: {get_language_code(language)}"
+        )
+        plt.tight_layout(rect=[0, 0.03, 1, 0.95])
+        plt.savefig(f"{language}_boxplot.png")
         plt.close()
+
 
 if __name__ == "__main__":
     main()
