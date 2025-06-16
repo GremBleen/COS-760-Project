@@ -111,6 +111,7 @@ def runLoop(
         # Evaluate the transcription
         temp_cer, temp_wer = evaluateTranscription(
             reference_text=reference_text,
+           
             predicted_text=predicted_text,
             batch_num=i,
             output=debug,
