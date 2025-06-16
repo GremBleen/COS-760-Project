@@ -79,8 +79,25 @@ def main():
             f"{row['file']:40} {row['cer_mean']:.4f}   {row['cer_median']:.4f}    {row['cer_std']:.4f}   {row['cer_min']:.4f}   {row['cer_max']:.4f}   {row['wer_mean']:.4f}   {row['wer_median']:.4f}    {row['wer_std']:.4f}   {row['wer_min']:.4f}   {row['wer_max']:.4f}"
         )
 
+    # Print latex table for better formatting
+    print("\nLaTeX Table:\n")
+    print("\\begin{tabular}{lllrrrrrrrrrr}")
+    print("\\toprule")
+    print(
+        "Language & Model & Refinement & CER Mean & CER Median & CER Std & CER Min & CER Max & WER Mean & WER Median & WER Std & WER Min & WER Max \\\\"
+    )
+    print("\\midrule")
+    for row in summary:
+        print(
+            f"{row['language']} & {row['model']} & {row['refinement']} & "
+            f"{row['cer_mean']:.4f} & {row['cer_median']:.4f} & {row['cer_std']:.4f} & {row['cer_min']:.4f} & {row['cer_max']:.4f} & "
+            f"{row['wer_mean']:.4f} & {row['wer_median']:.4f} & {row['wer_std']:.4f} & {row['wer_min']:.4f} & {row['wer_max']:.4f} \\\\"
+        )
+    print("\\bottomrule")
+    print("\\end{tabular}")
+
     # Optionally, save to CSV
-    with open("summary_statistics.csv", "w", newline="") as f:
+    with open("results/summary_statistics.csv", "w", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=summary[0].keys())
         writer.writeheader()
         writer.writerows(summary)
