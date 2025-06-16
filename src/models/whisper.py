@@ -55,7 +55,7 @@ def runLoop(
     if refinement is not False:
         from common import getWordList
 
-        word_list = getWordList(language=language, refinement=refinement)
+        word_list = getWordList(language=language)
 
     for i in range(num_batches):
         start_index = i * batch_size
