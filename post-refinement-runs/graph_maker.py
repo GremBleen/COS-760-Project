@@ -134,7 +134,7 @@ def main():
             rect=[0, 0.12, 1, 0.92]
         )  # Adjust top and bottom margins for legend/title
 
-        plt.savefig(f"{language}_boxplot.png", bbox_inches="tight")
+        plt.savefig(f"results/{language}_boxplot.png", bbox_inches="tight")
         plt.close()
 
 

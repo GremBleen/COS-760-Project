@@ -1,5 +1,6 @@
 import csv
 import os
+from math import sqrt
 
 # Change the below to change the file
 filename = "af_whisper-large_none_20250604_171212.csv"
@@ -32,8 +33,8 @@ with open(file, "r") as csvfile:
         cer_stdev += (float(row["CER"]) - cer_mean)**2
         wer_stdev += (float(row["WER"]) - wer_mean)**2
 
-    cer_stdev = cer_stdev / num_rows
-    wer_stdev = wer_stdev / num_rows
+    cer_stdev = sqrt(cer_stdev / num_rows)
+    wer_stdev = sqrt(wer_stdev / num_rows)
 
 print(f"CER Mean: {cer_mean:.4f}, CER Stdev: {cer_stdev:.4f}")
 print(f"WER Mean: {wer_mean:.4f}, WER Stdev: {wer_stdev:.4f}")
