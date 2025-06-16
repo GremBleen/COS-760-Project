@@ -19,6 +19,11 @@ def getLanguageCode(language):
     }
     return language_codes.get(language, None)
 
+def revertLanguageCode(language):
+    language_codes = {
+        "af": "afr",
+    }
+    return language_codes.get(language, language)
 
 def runLoop(
     processor,
@@ -55,7 +60,7 @@ def runLoop(
     if refinement is not False:
         from common import getWordList
 
-        word_list = getWordList(language=language)
+        word_list = getWordList(language=revertLanguageCode(language))
 
     for i in range(num_batches):
         start_index = i * batch_size
