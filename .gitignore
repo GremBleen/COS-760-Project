@@ -2,3 +2,11 @@
 __pycache__
 
 presets.json
+Pipfile.lock
+Pipfile
+
+
+*.DS_Store
+.python-version
+pyproject.toml
+uv.lock
