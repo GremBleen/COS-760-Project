@@ -15,9 +15,10 @@ def runLoop(
     else:
         has_mps = False
 
-    device = torch.device(
-        "cuda" if torch.cuda.is_available() else "mps" if has_mps else "cpu"
-    )
+    # device = torch.device(
+    #     "cuda" if torch.cuda.is_available() else "mps" if has_mps else "cpu"
+    # )
+    device = torch.device("cpu")  # Force to use CPU for compatibility
     model = model.to(device)
 
     # Using mini-batching to make it faster
@@ -32,7 +33,7 @@ def runLoop(
     if refinement is not False:
         from common import getWordList
 
-        word_list = getWordList(language=language, refinement=refinement)
+        word_list = getWordList(language=language)
 
     for i in range(num_batches):
         start_index = i * batch_size
