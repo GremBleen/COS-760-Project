@@ -38,6 +38,15 @@ def calc_stats(values):
         "max": np.max(arr),
     }
 
+def get_language(language_code):
+    language_map = {
+        "afr": "Afrikaans",
+        "zul": "Zulu",
+        "xho": "Xhosa"
+        # Add more languages as needed
+    }
+    return language_map.get(language_code, language_code.capitalize())
+
 
 def main():
     csv_files = glob.glob("*.csv")
@@ -79,30 +88,47 @@ def main():
             f"{row['file']:40} {row['cer_mean']:.4f}   {row['cer_median']:.4f}    {row['cer_std']:.4f}   {row['cer_min']:.4f}   {row['cer_max']:.4f}   {row['wer_mean']:.4f}   {row['wer_median']:.4f}    {row['wer_std']:.4f}   {row['wer_min']:.4f}   {row['wer_max']:.4f}"
         )
 
-    # Print latex table for better formatting
-    print("\nLaTeX Table:\n")
-    print("\\begin{tabular}{lllrrrrrrrrrr}")
-    print("\\toprule")
-    print(
-        "Language & Model & Refinement & CER Mean & CER Median & CER Std & CER Min & CER Max & WER Mean & WER Median & WER Std & WER Min & WER Max \\\\"
-    )
-    print("\\midrule")
+    # ...existing code...
+
+    # Group summary by language
+    from collections import defaultdict
+    grouped = defaultdict(list)
     for row in summary:
+        grouped[row['language']].append(row)
+
+    # Print LaTeX tables, one per language, using tabularx and smaller font for wide tables
+    for language in sorted(grouped.keys()):
+        print("\n")
+        print("\\begin{table}[ht]")
+        print("  \\centering")
+        print("  \\renewcommand{\\arraystretch}{1.3}")
+        print("  {\\footnotesize")
+        print("  \\begin{tabularx}{0.6\\textwidth}{lXXXXXX}")
+        print("    \\hline")
         print(
-            f"{row['language']} & {row['model']} & {row['refinement']} & "
-            f"{row['cer_mean']:.4f} & {row['cer_median']:.4f} & {row['cer_std']:.4f} & {row['cer_min']:.4f} & {row['cer_max']:.4f} & "
-            f"{row['wer_mean']:.4f} & {row['wer_median']:.4f} & {row['wer_std']:.4f} & {row['wer_min']:.4f} & {row['wer_max']:.4f} \\\\"
+            "    \\textbf{Model} & \\textbf{CER Mean} & \\textbf{CER Med} & \\textbf{CER Std} & \\textbf{WER Mean} & \\textbf{WER Med} & \\textbf{WER Std} \\\\"
         )
-    print("\\bottomrule")
-    print("\\end{tabular}")
-    print("\n")
+        print("    \\hline")
+        for row in grouped[language]:
+            print(
+                f"    {row['model']} & "
+                f"{row['cer_mean']:.4f} & {row['cer_median']:.4f} & {row['cer_std']:.4f} & "
+                f"{row['wer_mean']:.4f} & {row['wer_median']:.4f} & {row['wer_std']:.4f} \\\\"
+            )
+        print("    \\hline")
+        print("  \\end{tabularx}")
+        print("  }")
+        print(f"  \\caption{{Summary statistics for {get_language(language)}}}")
+        print(f"  \\label{{tab:summary_{language}}}")
+        print("\\end{table}")
+        print("% Requires \\usepackage{tabularx} in your preamble.")
+        print("\n")
 
     # Optionally, save to CSV
-    with open("results/summary_statistics.csv", "w", newline="") as f:
+    with open("summary_statistics.csv", "w", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=summary[0].keys())
         writer.writeheader()
         writer.writerows(summary)
-
 
 if __name__ == "__main__":
     main()
