@@ -23,7 +23,7 @@ def revertLanguageCode(language):
     language_codes = {
         "af": "afr",
     }
-    return language_codes.get(language, None)
+    return language_codes.get(language, language)
 
 def runLoop(
     processor,
