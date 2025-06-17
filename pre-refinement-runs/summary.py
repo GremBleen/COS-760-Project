@@ -99,11 +99,11 @@ def main():
     # Print LaTeX tables, one per language, using tabularx and smaller font for wide tables
     for language in sorted(grouped.keys()):
         print("\n")
-        print("\\begin{table}[ht]")
+        print("\\begin{table}[!ht]")
         print("  \\centering")
         print("  \\renewcommand{\\arraystretch}{1.3}")
-        print("  {\\footnotesize")
-        print("  \\begin{tabularx}{0.6\\textwidth}{lXXXXXX}")
+        print("  {\\scriptsize")
+        print("  \\begin{tabularx}{\\linewidth}{lXXXXXX}")
         print("    \\hline")
         print(
             "    \\textbf{Model} & \\textbf{CER Mean} & \\textbf{CER Med} & \\textbf{CER Std} & \\textbf{WER Mean} & \\textbf{WER Med} & \\textbf{WER Std} \\\\"
