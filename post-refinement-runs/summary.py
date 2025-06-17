@@ -127,7 +127,7 @@ def main():
         print("\n")
 
     # Optionally, save to CSV
-    with open("summary_statistics.csv", "w", newline="") as f:
+    with open("results/summary_statistics.csv", "w", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=summary[0].keys())
         writer.writeheader()
         writer.writerows(summary)
