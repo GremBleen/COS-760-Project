@@ -1,40 +1,53 @@
 # COS760 Natural Language Research Project
 
-## Local Development:
-To get started clone the repository:
+This repository contains the code for the COS760 Natural Language Research Project, which focuses on ASR models for African languages. The project is part of the COS-760 module provided by the University of Pretoria. 
+
+This project was developed by the following team members:
+- [Graeme Blain](https://github.com/GremBleen)
+- [Aidan Chapman](https://github.com/Acedem)
+- [Matjere Matseba](https://github.com/MatjereJ)
+
+## Local Development
+
+To get started, clone the repository:
+
 ```shell
-# With https:
+# With HTTPS:
 git clone https://github.com/GremBleen/COS-760-Project.git
 
-# With ssh:
+# With SSH:
 git clone git@github.com:GremBleen/COS-760-Project.git
 ```
 
-## Python Setup:
+## Python Setup
 
-Now that you have the basic project structure, you can start looking at the python setup.
+After cloning the repository, you can set up the Python environment.
 
-### Python Version:
-We are using Python 3.11 for this project. It is recommended to use a virtual environment to manage the dependencies and avoid conflicts with other projects. The recommended way to set up a virtual environment is to use `pipenv`, `conda` or any environment manager. You can create a virtual environment with the following command:
+### Python Version
+
+We use Python 3.11 for this project. It is recommended to use a virtual environment to manage dependencies and avoid conflicts with other projects. You can use `venv`, `pipenv`, `conda`, or any environment manager of your choice. Below are some options to create a virtual environment:
 
 ```shell
 python3 -m venv venv
 ```
 
-or if you have `pipenv` installed:
+If you have `pipenv` installed:
+
 ```shell
 pipenv --python 3.11
 ```
 
-or if you are using conda, you can create an environment with:
+If you are using conda:
+
 ```shell
 conda create -n venv python=3.11
 ```
 
-### Installing Dependencies:
-After setting up the virtual environment, you need to install the dependencies required for the project. You can do this by activating the virtual environment and then installing the dependencies using `pip` or `pipenv`.
+### Installing Dependencies
 
-Activate the virtual environment
+After setting up the virtual environment, activate it and install the required dependencies.
+
+Activate the virtual environment:
 
 ```shell
 source venv/bin/activate  # For Linux/MacOS
@@ -42,40 +55,37 @@ source venv/bin/activate  # For Linux/MacOS
 ```shell
 venv\Scripts\activate  # For Windows
 ```
-Then install the dependencies
 
->**Note:**  The project made use of conda for the management of the environment and dependencies.
+> **Note:**  
+> The project originally used conda for environment and dependency management. However, due to issues when creating environments on different operating systems, we now recommend installing dependencies manually. If you encounter errors when running the project, check if additional dependencies are required.
 
-Initially we had an `environment.yml` file, however, there were issues when creating a new environment on a different OS, so instead we recommend that you install the dependencies manually. When running the project, if any errors occur, look to see if further dependencies are necessary.
-
-Below is a list of the dependencies that are required for the project:
+Below is a list of required dependencies:
 
 ```
-dependencies = [
-    "datasets>=3.6.0",
-    "dotenv>=0.9.9",
-    "fuzzywuzzy>=0.18.0",
-    "huggingface-hub>=0.33.0",
-    "jiwer>=3.1.0",
-    "librosa>=0.11.0",
-    "matplotlib>=3.10.3",
-    "python-levenshtein>=0.27.1",
-    "torch>=2.7.1",
-    "torchaudio>=2.7.1",
-    "transformers>=4.52.4",
-]
+datasets>=3.6.0
+dotenv>=0.9.9
+fuzzywuzzy>=0.18.0
+huggingface-hub>=0.33.0
+jiwer>=3.1.0
+librosa>=0.11.0
+matplotlib>=3.10.3
+python-levenshtein>=0.27.1
+torch>=2.7.1
+torchaudio>=2.7.1
+transformers>=4.52.4
 ```
 
-## Running the Models:
+## Running the Models
 
-After all the setup is, it is necessary to create a `.env` file. This is where all environment variables and is necessary so as not to expose sensitive information.
+After completing the setup, create a `.env` file in the root directory. This file stores environment variables and helps keep sensitive information secure.
 
-The `.env` file requires the following:
+The `.env` file should contain:
+
 ```env
-HUGGINGFACE_TOKEN= <INPUT TOKEN HERE>
+HUGGINGFACE_TOKEN=<INPUT TOKEN HERE>
 ```
 
-To run the models, you must create a `presets.json` file in the main directory of the project. This file should contain the following structure:
+To run the models, create a `presets.json` file in the main directory with the following structure:
 
 ```json
 {
@@ -87,31 +97,39 @@ To run the models, you must create a `presets.json` file in the main directory o
 }
 ```
 
-In the above structure, replace `<LANGUAGE CODE>` with the language code of the dataset you want to use (e.g., "afr" for Afrikaans, "xho" for Xhosa, and "zul" for Zulu). Also replace `<MODEL NAME>` with the name of the model you want to use (e.g., "facebook-mms", "lelapa", "sm4t", "wav2vec", "whisper-large", and "whisper-medium"). The `batch_size` can be adjuste, but we recommend keeping it at 20, as it provides a good balance between performance and memory usage. The `refinement_method` can be set to `true` or `false`, depending on whether you want to use the refinement method or not. The `debug` flag can also be set to `true` or `false`, depending on whether you want to print running information to the console or not.
+Replace `<LANGUAGE CODE>` with the code for your dataset's language (e.g., "afr" for Afrikaans, "xho" for Xhosa, "zul" for Zulu).  
+Replace `<MODEL NAME>` with the desired model (e.g., "facebook-mms", "lelapa", "sm4t", "wav2vec", "whisper-large", "whisper-medium").  
+You can adjust `batch_size`, but we recommend keeping it at 20 for a good balance between performance and memory usage.  
+Set `refinement_method` to `true` or `false` depending on whether you want to use the refinement method.  
+Set `debug` to `true` or `false` to control whether running information is printed to the console.
 
-### Running the Project:
+### Running the Project
 
-Now to run the project, you can use the following command (assuming you are in the root directory of the project):
+To run the project, use the following command from the root directory:
+
 ```shell
 python3 src/main.py
 ```
 
-## Git Development:
+## Git Development
 
-### Git Workflow:
-We are making use of the [Git Flow](https://danielkummer.github.io/git-flow-cheatsheet/) workflow.
+### Git Workflow
 
-Assuming git flow has been installed, you can initialize it as follows:
+We use the [Git Flow](https://danielkummer.github.io/git-flow-cheatsheet/) workflow.
+
+If Git Flow is installed, initialize it with:
+
 ```shell
 git flow init
 ```
 
-To start a new feature, you can use the following command:
+To start a new feature:
+
 ```shell
 git flow feature start <feature-name>
 ```
 
-To finish a feature, you can use the following command:
+To finish a feature:
+
 ```shell
 git flow feature finish <feature-name>
-```
