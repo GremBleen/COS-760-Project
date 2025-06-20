@@ -19,6 +19,36 @@ git clone https://github.com/GremBleen/COS-760-Project.git
 git clone git@github.com:GremBleen/COS-760-Project.git
 ```
 
+## Files and Directories
+
+```shell
+├── analyse_results.sh
+├── post-refinement-runs
+├── pre-refinement-runs
+├── presets.json
+├── README.md
+├── src
+│   ├── common.py
+│   ├── main.py
+│   └── models
+│       ├── facebook_mms.py
+│       ├── lelapa.py
+│       ├── SM4T.py
+│       ├── wav2vec.py
+│       └── whisper.py
+└── stat_extract.py
+```
+
+`analyse_results.sh` is a shell script that can be used to analyze the results of the ASR models.
+
+`post-refinement-runs` and `pre-refinement-runs` are directories that contain the results of the ASR models before and after refinement, respectively.
+
+`presets.json` is a configuration file that contains the settings for running the models. It is necessary to alter this file to run the models with different configurations.
+
+`src` contains all source code.
+
+`stat_extract.py` is a deprecated script that was not used. Numpy was instead used.
+
 ## Python Setup
 
 After cloning the repository, you can set up the Python environment.
@@ -110,6 +140,10 @@ To run the project, use the following command from the root directory:
 ```shell
 python3 src/main.py
 ```
+
+## Data Sources
+
+This repository makes use of the NCHLT datasets through a Huggingface interface. Available at: [NCHLT Datasets](https://huggingface.co/danielshaps). It is not necessary to download the datasets as this is done implicitly by running the scripts.
 
 ## Git Development
 
